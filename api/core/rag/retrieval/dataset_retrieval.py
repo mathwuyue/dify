@@ -205,7 +205,8 @@ class DatasetRetrieval:
                     resource_number += 1
                 if hit_callback:
                     hit_callback.return_retriever_resource_info(context_list)
-
+            # return string
+            document_context_list = [f"{i}. " + item.replace('\n', '') for i, item in enumerate(document_context_list, 1)]
             return str("\n".join(document_context_list))
         return ''
 

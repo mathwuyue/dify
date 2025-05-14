@@ -1,6 +1,6 @@
-model: qwen-plus-chat
+model: qwen3-235b-a22b
 label:
-  en_US: qwen-plus-chat
+  en_US: qwen3-235b-a22b
 model_type: llm
 features:
   - multi-tool-call
@@ -8,7 +8,7 @@ features:
   - stream-tool-call
 model_properties:
   mode: chat
-  context_size: 32768
+  context_size: 128000
 parameter_rules:
   - name: temperature
     use_template: temperature
@@ -22,9 +22,9 @@ parameter_rules:
   - name: max_tokens
     use_template: max_tokens
     type: int
-    default: 2000
+    default: 38912
     min: 1
-    max: 2000
+    max: 38912
     help:
       zh_Hans: 用于指定模型在生成内容时token的最大数量，它定义了生成的上限，但不保证每次都会生成到这个数量。
       en_US: It is used to specify the maximum number of tokens when the model generates content. It defines the upper limit of generation, but does not guarantee that this number will be generated every time.
@@ -76,6 +76,6 @@ parameter_rules:
     use_template: response_format
 pricing:
   input: '0.004'
-  output: '0.012'
+  output: '0.04'
   unit: '0.001'
   currency: RMB

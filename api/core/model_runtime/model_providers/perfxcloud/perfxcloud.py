@@ -22,7 +22,7 @@ class PerfXCloudProvider(ModelProvider):
             # Use `Qwen2_72B_Chat_GPTQ_Int4` model for validate,
             # no matter what model you pass in, text completion model or chat model
             model_instance.validate_credentials(
-                model='Qwen2-72B-Instruct-GPTQ-Int4',
+                model='Qwen2-72B-Instruct',
                 credentials=credentials
             )
         except CredentialsValidateFailedError as ex:

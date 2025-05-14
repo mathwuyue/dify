@@ -9,6 +9,8 @@ if os.environ.get("DEBUG", "false").lower() != "true":
 
     grpc.experimental.gevent.init_gevent()
 
+    from gevent.pywsgi import WSGIServer
+
 import json
 import logging
 import sys
@@ -174,16 +176,22 @@ def load_user_from_request(request_from_flask_login):
             raise Unauthorized("Invalid Authorization token.")
     else:
         if " " not in auth_header:
-            raise Unauthorized("Invalid Authorization header format. Expected 'Bearer <api-key>' format.")
+            raise Unauthorized(
+                "Invalid Authorization header format. Expected 'Bearer <api-key>' format."
+            )
         auth_scheme, auth_token = auth_header.split(None, 1)
         auth_scheme = auth_scheme.lower()
         if auth_scheme != "bearer":
-            raise Unauthorized("Invalid Authorization header format. Expected 'Bearer <api-key>' format.")
+            raise Unauthorized(
+                "Invalid Authorization header format. Expected 'Bearer <api-key>' format."
+            )
 
     decoded = PassportService().verify(auth_token)
     user_id = decoded.get("user_id")
 
-    account = AccountService.load_logged_in_account(account_id=user_id, token=auth_token)
+    account = AccountService.load_logged_in_account(
+        account_id=user_id, token=auth_token
+    )
     if account:
         contexts.tenant_id.set(account.current_tenant_id)
     return account
@@ -236,7 +244,11 @@ def register_blueprints(app):
 
     app.register_blueprint(console_app_bp)
 
-    CORS(files_bp, allow_headers=["Content-Type"], methods=["GET", "PUT", "POST", "DELETE", "OPTIONS", "PATCH"])
+    CORS(
+        files_bp,
+        allow_headers=["Content-Type"],
+        methods=["GET", "PUT", "POST", "DELETE", "OPTIONS", "PATCH"],
+    )
     app.register_blueprint(files_bp)
 
     app.register_blueprint(inner_api_bp)
@@ -262,7 +274,13 @@ def after_request(response):
 @app.route("/health")
 def health():
     return Response(
-        json.dumps({"pid": os.getpid(), "status": "ok", "version": app.config["CURRENT_VERSION"]}),
+        json.dumps(
+            {
+                "pid": os.getpid(),
+                "status": "ok",
+                "version": app.config["CURRENT_VERSION"],
+            }
+        ),
         status=200,
         content_type="application/json",
     )
@@ -309,4 +327,6 @@ def pool_stat():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5001)
+    # app.run(host="0.0.0.0", port=5001)
+    http_server = WSGIServer(("0.0.0.0", 5001), app)
+    http_server.serve_forever()

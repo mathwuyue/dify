@@ -222,9 +222,6 @@ class WordExtractor(BaseExtractor):
                     except Exception as e:
                         logger.error(e)
 
-
-
-
         def parse_paragraph(paragraph):
             paragraph_content = []
             for run in paragraph.runs:
