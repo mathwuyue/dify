@@ -2,7 +2,7 @@ const translation = {
   common: {
     welcome: '',
     appUnavailable: 'Uygulama kullanılamıyor',
-    appUnkonwError: 'Uygulama kullanılamıyor',
+    appUnknownError: 'Uygulama kullanılamıyor',
   },
   chat: {
     newChat: 'Yeni sohbet',
@@ -10,7 +10,7 @@ const translation = {
     unpinnedTitle: 'Sohbetler',
     newChatDefaultName: 'Yeni konuşma',
     resetChat: 'Konuşmayı sıfırla',
-    powerBy: 'Tarafından desteklenmektedir',
+    poweredBy: 'Tarafından desteklenmektedir',
     prompt: 'Prompt',
     privatePromptConfigTitle: 'Konuşma ayarları',
     publicPromptConfigTitle: 'Başlangıç Promptu',
@@ -26,6 +26,12 @@ const translation = {
     },
     tryToSolve: 'Çözmeyi Dene',
     temporarySystemIssue: 'Üzgünüz, geçici sistem sorunu.',
+    expand: 'Genişlet',
+    collapse: 'Kısıtla',
+    chatSettingsTitle: 'Yeni sohbet kurulumu',
+    chatFormTip: 'Sohbet başladıktan sonra sohbet ayarları değiştirilemez.',
+    viewChatSettings: 'Sohbet ayarlarını görüntüle',
+    newChatTip: 'Zaten yeni bir sohbette',
   },
   generation: {
     tabs: {
@@ -64,6 +70,8 @@ const translation = {
       moreThanMaxLengthLine: 'Satır {{rowIndex}}: {{varName}} değeri {{maxLength}} karakterden fazla olamaz',
       atLeastOne: 'Lütfen yüklenen dosyada en az bir satır girin.',
     },
+    execution: 'İFRAZAT',
+    executions: '{{num}} İDAM',
   },
 }
 

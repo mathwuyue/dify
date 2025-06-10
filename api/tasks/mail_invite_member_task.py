@@ -2,7 +2,7 @@ import logging
 import time
 
 import click
-from celery import shared_task
+from celery import shared_task  # type: ignore
 from flask import render_template
 
 from configs import dify_config
@@ -19,7 +19,7 @@ def send_invite_member_mail_task(language: str, to: str, token: str, inviter_nam
     :param inviter_name
     :param workspace_name
 
-    Usage: send_invite_member_mail_task.delay(langauge, to, token, inviter_name, workspace_name)
+    Usage: send_invite_member_mail_task.delay(language, to, token, inviter_name, workspace_name)
     """
     if not mail.is_inited():
         return

@@ -1,13 +1,7 @@
 import Container from './Container'
 
 const AppList = async () => {
-  return (
-    <Container />
-  )
-}
-
-export const metadata = {
-  title: 'Datasets - Dify',
+  return <Container />
 }
 
 export default AppList

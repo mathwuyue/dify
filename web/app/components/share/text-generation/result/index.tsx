@@ -4,22 +4,23 @@ import React, { useEffect, useRef, useState } from 'react'
 import { useBoolean } from 'ahooks'
 import { t } from 'i18next'
 import produce from 'immer'
-import cn from '@/utils/classnames'
 import TextGenerationRes from '@/app/components/app/text-generate/item'
 import NoData from '@/app/components/share/text-generation/no-data'
 import Toast from '@/app/components/base/toast'
 import { sendCompletionMessage, sendWorkflowMessage, updateFeedback } from '@/service/share'
-import type { Feedbacktype } from '@/app/components/base/chat/chat/type'
+import type { FeedbackType } from '@/app/components/base/chat/chat/type'
 import Loading from '@/app/components/base/loading'
 import type { PromptConfig } from '@/models/debug'
 import type { InstalledApp } from '@/models/explore'
-import type { ModerationService } from '@/models/common'
 import { TransferMethod, type VisionFile, type VisionSettings } from '@/types/app'
 import { NodeRunningStatus, WorkflowRunningStatus } from '@/app/components/workflow/types'
 import type { WorkflowProcess } from '@/app/components/base/chat/types'
 import { sleep } from '@/utils'
 import type { SiteInfo } from '@/models/share'
 import { TEXT_GENERATION_TIMEOUT_MS } from '@/config'
+import {
+  getFilesInLogs,
+} from '@/app/components/base/file-uploader/utils'
 
 export type IResultProps = {
   isWorkflow: boolean
@@ -40,11 +41,10 @@ export type IResultProps = {
   handleSaveMessage: (messageId: string) => void
   taskId?: number
   onCompleted: (completionRes: string, taskId?: number, success?: boolean) => void
-  enableModeration?: boolean
-  moderationService?: (text: string) => ReturnType<ModerationService>
   visionConfig: VisionSettings
   completionFiles: VisionFile[]
   siteInfo: SiteInfo | null
+  onRunStart: () => void
 }
 
 const Result: FC<IResultProps> = ({
@@ -69,6 +69,7 @@ const Result: FC<IResultProps> = ({
   visionConfig,
   completionFiles,
   siteInfo,
+  onRunStart,
 }) => {
   const [isResponding, { setTrue: setRespondingTrue, setFalse: setRespondingFalse }] = useBoolean(false)
   useEffect(() => {
@@ -83,23 +84,23 @@ const Result: FC<IResultProps> = ({
     doSetCompletionRes(res)
   }
   const getCompletionRes = () => completionResRef.current
-  const [workflowProcessData, doSetWorkflowProccessData] = useState<WorkflowProcess>()
+  const [workflowProcessData, doSetWorkflowProcessData] = useState<WorkflowProcess>()
   const workflowProcessDataRef = useRef<WorkflowProcess>()
-  const setWorkflowProccessData = (data: WorkflowProcess) => {
+  const setWorkflowProcessData = (data: WorkflowProcess) => {
     workflowProcessDataRef.current = data
-    doSetWorkflowProccessData(data)
+    doSetWorkflowProcessData(data)
   }
-  const getWorkflowProccessData = () => workflowProcessDataRef.current
+  const getWorkflowProcessData = () => workflowProcessDataRef.current
 
   const { notify } = Toast
   const isNoData = !completionRes
 
   const [messageId, setMessageId] = useState<string | null>(null)
-  const [feedback, setFeedback] = useState<Feedbacktype>({
+  const [feedback, setFeedback] = useState<FeedbackType>({
     rating: null,
   })
 
-  const handleFeedback = async (feedback: Feedbacktype) => {
+  const handleFeedback = async (feedback: FeedbackType) => {
     await updateFeedback({ url: `/messages/${messageId}/feedbacks`, body: { rating: feedback.rating } }, isInstalledApp, installedAppInfo?.id)
     setFeedback(feedback)
   }
@@ -116,7 +117,7 @@ const Result: FC<IResultProps> = ({
     const prompt_variables = promptConfig?.prompt_variables
     if (!prompt_variables || prompt_variables?.length === 0) {
       if (completionFiles.find(item => item.transfer_method === TransferMethod.local_file && !item.upload_file_id)) {
-        notify({ type: 'info', message: t('appDebug.errorMessage.waitForImgUpload') })
+        notify({ type: 'info', message: t('appDebug.errorMessage.waitForFileUpload') })
         return false
       }
       return true
@@ -141,7 +142,7 @@ const Result: FC<IResultProps> = ({
     }
 
     if (completionFiles.find(item => item.transfer_method === TransferMethod.local_file && !item.upload_file_id)) {
-      notify({ type: 'info', message: t('appDebug.errorMessage.waitForImgUpload') })
+      notify({ type: 'info', message: t('appDebug.errorMessage.waitForFileUpload') })
       return false
     }
     return !hasEmptyInput
@@ -180,8 +181,10 @@ const Result: FC<IResultProps> = ({
     let res: string[] = []
     let tempMessageId = ''
 
-    if (!isPC)
+    if (!isPC) {
       onShowRes()
+      onRunStart()
+    }
 
     setRespondingTrue()
     let isEnd = false
@@ -196,14 +199,12 @@ const Result: FC<IResultProps> = ({
     })()
 
     if (isWorkflow) {
-      let isInIteration = false
-
       sendWorkflowMessage(
         data,
         {
           onWorkflowStarted: ({ workflow_run_id }) => {
             tempMessageId = workflow_run_id
-            setWorkflowProccessData({
+            setWorkflowProcessData({
               status: WorkflowRunningStatus.Running,
               tracing: [],
               expand: false,
@@ -211,48 +212,89 @@ const Result: FC<IResultProps> = ({
             })
           },
           onIterationStart: ({ data }) => {
-            setWorkflowProccessData(produce(getWorkflowProccessData()!, (draft) => {
+            setWorkflowProcessData(produce(getWorkflowProcessData()!, (draft) => {
               draft.expand = true
               draft.tracing!.push({
                 ...data,
                 status: NodeRunningStatus.Running,
                 expand: true,
-              } as any)
+              })
             }))
-            isInIteration = true
           },
           onIterationNext: () => {
+            setWorkflowProcessData(produce(getWorkflowProcessData()!, (draft) => {
+              draft.expand = true
+              const iterations = draft.tracing.find(item => item.node_id === data.node_id
+                && (item.execution_metadata?.parallel_id === data.execution_metadata?.parallel_id || item.parallel_id === data.execution_metadata?.parallel_id))!
+              iterations?.details!.push([])
+            }))
           },
           onIterationFinish: ({ data }) => {
-            setWorkflowProccessData(produce(getWorkflowProccessData()!, (draft) => {
+            setWorkflowProcessData(produce(getWorkflowProcessData()!, (draft) => {
               draft.expand = true
-              // const iteration = draft.tracing![draft.tracing!.length - 1]
-              draft.tracing![draft.tracing!.length - 1] = {
+              const iterationsIndex = draft.tracing.findIndex(item => item.node_id === data.node_id
+                && (item.execution_metadata?.parallel_id === data.execution_metadata?.parallel_id || item.parallel_id === data.execution_metadata?.parallel_id))!
+              draft.tracing[iterationsIndex] = {
                 ...data,
                 expand: !!data.error,
-              } as any
+              }
             }))
-            isInIteration = false
           },
-          onNodeStarted: ({ data }) => {
-            if (isInIteration)
-              return
-
-            setWorkflowProccessData(produce(getWorkflowProccessData()!, (draft) => {
+          onLoopStart: ({ data }) => {
+            setWorkflowProcessData(produce(getWorkflowProcessData()!, (draft) => {
               draft.expand = true
               draft.tracing!.push({
                 ...data,
                 status: NodeRunningStatus.Running,
                 expand: true,
-              } as any)
+              })
+            }))
+          },
+          onLoopNext: () => {
+            setWorkflowProcessData(produce(getWorkflowProcessData()!, (draft) => {
+              draft.expand = true
+              const loops = draft.tracing.find(item => item.node_id === data.node_id
+                && (item.execution_metadata?.parallel_id === data.execution_metadata?.parallel_id || item.parallel_id === data.execution_metadata?.parallel_id))!
+              loops?.details!.push([])
+            }))
+          },
+          onLoopFinish: ({ data }) => {
+            setWorkflowProcessData(produce(getWorkflowProcessData()!, (draft) => {
+              draft.expand = true
+              const loopsIndex = draft.tracing.findIndex(item => item.node_id === data.node_id
+                && (item.execution_metadata?.parallel_id === data.execution_metadata?.parallel_id || item.parallel_id === data.execution_metadata?.parallel_id))!
+              draft.tracing[loopsIndex] = {
+                ...data,
+                expand: !!data.error,
+              }
+            }))
+          },
+          onNodeStarted: ({ data }) => {
+            if (data.iteration_id)
+              return
+
+            if (data.loop_id)
+              return
+
+            setWorkflowProcessData(produce(getWorkflowProcessData()!, (draft) => {
+              draft.expand = true
+              draft.tracing!.push({
+                ...data,
+                status: NodeRunningStatus.Running,
+                expand: true,
+              })
             }))
           },
           onNodeFinished: ({ data }) => {
-            if (isInIteration)
+            if (data.iteration_id)
               return
 
-            setWorkflowProccessData(produce(getWorkflowProccessData()!, (draft) => {
-              const currentIndex = draft.tracing!.findIndex(trace => trace.node_id === data.node_id)
+            if (data.loop_id)
+              return
+
+            setWorkflowProcessData(produce(getWorkflowProcessData()!, (draft) => {
+              const currentIndex = draft.tracing!.findIndex(trace => trace.node_id === data.node_id
+                && (trace.execution_metadata?.parallel_id === data.execution_metadata?.parallel_id || trace.parallel_id === data.execution_metadata?.parallel_id))
               if (currentIndex > -1 && draft.tracing) {
                 draft.tracing[currentIndex] = {
                   ...(draft.tracing[currentIndex].extras
@@ -260,16 +302,18 @@ const Result: FC<IResultProps> = ({
                     : {}),
                   ...data,
                   expand: !!data.error,
-                } as any
+                }
               }
             }))
           },
           onWorkflowFinished: ({ data }) => {
-            if (isTimeout)
+            if (isTimeout) {
+              notify({ type: 'warning', message: t('appDebug.warningMessage.timeoutExceeded') })
               return
+            }
             if (data.error) {
               notify({ type: 'error', message: data.error })
-              setWorkflowProccessData(produce(getWorkflowProccessData()!, (draft) => {
+              setWorkflowProcessData(produce(getWorkflowProcessData()!, (draft) => {
                 draft.status = WorkflowRunningStatus.Failed
               }))
               setRespondingFalse()
@@ -277,8 +321,9 @@ const Result: FC<IResultProps> = ({
               isEnd = true
               return
             }
-            setWorkflowProccessData(produce(getWorkflowProccessData()!, (draft) => {
+            setWorkflowProcessData(produce(getWorkflowProcessData()!, (draft) => {
               draft.status = WorkflowRunningStatus.Succeeded
+              draft.files = getFilesInLogs(data.outputs || []) as any[]
             }))
             if (!data.outputs) {
               setCompletionRes('')
@@ -287,7 +332,7 @@ const Result: FC<IResultProps> = ({
               setCompletionRes(data.outputs)
               const isStringOutput = Object.keys(data.outputs).length === 1 && typeof data.outputs[Object.keys(data.outputs)[0]] === 'string'
               if (isStringOutput) {
-                setWorkflowProccessData(produce(getWorkflowProccessData()!, (draft) => {
+                setWorkflowProcessData(produce(getWorkflowProcessData()!, (draft) => {
                   draft.resultText = data.outputs[Object.keys(data.outputs)[0]]
                 }))
               }
@@ -299,13 +344,13 @@ const Result: FC<IResultProps> = ({
           },
           onTextChunk: (params) => {
             const { data: { text } } = params
-            setWorkflowProccessData(produce(getWorkflowProccessData()!, (draft) => {
+            setWorkflowProcessData(produce(getWorkflowProcessData()!, (draft) => {
               draft.resultText += text
             }))
           },
           onTextReplace: (params) => {
             const { data: { text } } = params
-            setWorkflowProccessData(produce(getWorkflowProccessData()!, (draft) => {
+            setWorkflowProcessData(produce(getWorkflowProcessData()!, (draft) => {
               draft.resultText = text
             }))
           },
@@ -322,8 +367,10 @@ const Result: FC<IResultProps> = ({
           setCompletionRes(res.join(''))
         },
         onCompleted: () => {
-          if (isTimeout)
+          if (isTimeout) {
+            notify({ type: 'warning', message: t('appDebug.warningMessage.timeoutExceeded') })
             return
+          }
           setRespondingFalse()
           setMessageId(tempMessageId)
           onCompleted(getCompletionRes(), taskId, true)
@@ -334,8 +381,10 @@ const Result: FC<IResultProps> = ({
           setCompletionRes(res.join(''))
         },
         onError() {
-          if (isTimeout)
+          if (isTimeout) {
+            notify({ type: 'warning', message: t('appDebug.warningMessage.timeoutExceeded') })
             return
+          }
           setRespondingFalse()
           onCompleted(getCompletionRes(), taskId, false)
           isEnd = true
@@ -361,7 +410,6 @@ const Result: FC<IResultProps> = ({
     <TextGenerationRes
       isWorkflow={isWorkflow}
       workflowProcessData={workflowProcessData}
-      className='mt-3'
       isError={isError}
       onRetry={handleSend}
       content={completionRes}
@@ -384,11 +432,11 @@ const Result: FC<IResultProps> = ({
   )
 
   return (
-    <div className={cn(isNoData && !isCallBatchAPI && 'h-full')}>
+    <>
       {!isCallBatchAPI && !isWorkflow && (
         (isResponding && !completionRes)
           ? (
-            <div className='flex h-full w-full justify-center items-center'>
+            <div className='flex h-full w-full items-center justify-center'>
               <Loading type='area' />
             </div>)
           : (
@@ -400,25 +448,19 @@ const Result: FC<IResultProps> = ({
             </>
           )
       )}
-      {
-        !isCallBatchAPI && isWorkflow && (
-          (isResponding && !workflowProcessData)
-            ? (
-              <div className='flex h-full w-full justify-center items-center'>
-                <Loading type='area' />
-              </div>
-            )
-            : !workflowProcessData
-              ? <NoData />
-              : renderTextGenerationRes()
-        )
-      }
-      {isCallBatchAPI && (
-        <div className='mt-2'>
-          {renderTextGenerationRes()}
-        </div>
+      {!isCallBatchAPI && isWorkflow && (
+        (isResponding && !workflowProcessData)
+          ? (
+            <div className='flex h-full w-full items-center justify-center'>
+              <Loading type='area' />
+            </div>
+          )
+          : !workflowProcessData
+            ? <NoData />
+            : renderTextGenerationRes()
       )}
-    </div>
+      {isCallBatchAPI && renderTextGenerationRes()}
+    </>
   )
 }
 export default React.memo(Result)

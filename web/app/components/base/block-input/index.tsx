@@ -53,7 +53,7 @@ const BlockInput: FC<IBlockInputProps> = ({
   const [isEditing, setIsEditing] = useState<boolean>(false)
   useEffect(() => {
     if (isEditing && contentEditableRef.current) {
-      // TODO: Focus at the click positon
+      // TODO: Focus at the click position
       if (currentValue)
         contentEditableRef.current.setSelectionRange(currentValue.length, currentValue.length)
 
@@ -119,7 +119,7 @@ const BlockInput: FC<IBlockInputProps> = ({
             onBlur={() => {
               blur()
               setIsEditing(false)
-              // click confirm also make blur. Then outter value is change. So below code has problem.
+              // click confirm also make blur. Then outer value is change. So below code has problem.
               // setTimeout(() => {
               //   handleCancel()
               // }, 1000)
@@ -134,8 +134,8 @@ const BlockInput: FC<IBlockInputProps> = ({
       {textAreaContent}
       {/* footer */}
       {!readonly && (
-        <div className='pl-4 pb-2 flex'>
-          <div className="h-[18px] leading-[18px] px-1 rounded-md bg-gray-100 text-xs text-gray-500">{currentValue?.length}</div>
+        <div className='flex pb-2 pl-4'>
+          <div className="h-[18px] rounded-md bg-gray-100 px-1 text-xs leading-[18px] text-gray-500">{currentValue?.length}</div>
         </div>
       )}
 

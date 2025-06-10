@@ -1,20 +1,20 @@
 import React, { useEffect } from 'react'
 import { useShallow } from 'zustand/react/shallow'
+import { RiLayoutLeft2Line, RiLayoutRight2Line } from '@remixicon/react'
 import NavLink from './navLink'
 import type { NavIcon } from './navLink'
 import AppBasic from './basic'
 import AppInfo from './app-info'
+import DatasetInfo from './dataset-info'
 import useBreakpoints, { MediaType } from '@/hooks/use-breakpoints'
-import {
-  AlignLeft01,
-  AlignRight01,
-} from '@/app/components/base/icons/src/vender/line/layout'
 import { useStore as useAppStore } from '@/app/components/app/store'
+import cn from '@/utils/classnames'
 
 export type IAppDetailNavProps = {
   iconType?: 'app' | 'dataset' | 'notion'
   title: string
   desc: string
+  isExternal?: boolean
   icon: string
   icon_background: string
   navigation: Array<{
@@ -26,7 +26,7 @@ export type IAppDetailNavProps = {
   extraInfo?: (modeState: string) => React.ReactNode
 }
 
-const AppDetailNav = ({ title, desc, icon, icon_background, navigation, extraInfo, iconType = 'app' }: IAppDetailNavProps) => {
+const AppDetailNav = ({ title, desc, isExternal, icon, icon_background, navigation, extraInfo, iconType = 'app' }: IAppDetailNavProps) => {
   const { appSidebarExpand, setAppSiderbarExpand } = useAppStore(useShallow(state => ({
     appSidebarExpand: state.appSidebarExpand,
     setAppSiderbarExpand: state.setAppSiderbarExpand,
@@ -49,20 +49,29 @@ const AppDetailNav = ({ title, desc, icon, icon_background, navigation, extraInf
   return (
     <div
       className={`
-        shrink-0 flex flex-col bg-background-default-subtle border-r border-divider-burn transition-all
+        flex shrink-0 flex-col border-r border-divider-burn bg-background-default-subtle transition-all
         ${expand ? 'w-[216px]' : 'w-14'}
       `}
     >
       <div
         className={`
           shrink-0
-          ${expand ? 'p-3' : 'p-2'}
+          ${expand ? 'p-2' : 'p-1'}
         `}
       >
         {iconType === 'app' && (
           <AppInfo expand={expand} />
         )}
-        {iconType !== 'app' && (
+        {iconType === 'dataset' && (
+          <DatasetInfo
+            name={title}
+            description={desc}
+            isExternal={isExternal}
+            expand={expand}
+            extraInfo={extraInfo && extraInfo(appSidebarExpand)}
+          />
+        )}
+        {!['app', 'dataset'].includes(iconType) && (
           <AppBasic
             mode={appSidebarExpand}
             iconType={iconType}
@@ -70,12 +79,13 @@ const AppDetailNav = ({ title, desc, icon, icon_background, navigation, extraInf
             icon_background={icon_background}
             name={title}
             type={desc}
+            isExternal={isExternal}
           />
         )}
       </div>
-      {!expand && (
-        <div className='mt-1 mx-auto w-6 h-[1px] bg-divider-subtle' />
-      )}
+      <div className='px-4'>
+        <div className={cn('mx-auto mt-1 h-[1px] bg-divider-subtle', !expand && 'w-6')} />
+      </div>
       <nav
         className={`
           grow space-y-1
@@ -87,7 +97,6 @@ const AppDetailNav = ({ title, desc, icon, icon_background, navigation, extraInf
             <NavLink key={index} mode={appSidebarExpand} iconMap={{ selected: item.selectedIcon, normal: item.icon }} name={item.name} href={item.href} />
           )
         })}
-        {extraInfo && extraInfo(appSidebarExpand)}
       </nav>
       {
         !isMobile && (
@@ -98,13 +107,13 @@ const AppDetailNav = ({ title, desc, icon, icon_background, navigation, extraInf
             `}
           >
             <div
-              className='flex items-center justify-center w-6 h-6 text-gray-500 cursor-pointer'
+              className='flex h-6 w-6 cursor-pointer items-center justify-center'
               onClick={() => handleToggle(appSidebarExpand)}
             >
               {
                 expand
-                  ? <AlignLeft01 className='w-[14px] h-[14px]' />
-                  : <AlignRight01 className='w-[14px] h-[14px]' />
+                  ? <RiLayoutRight2Line className='h-5 w-5 text-components-menu-item-text' />
+                  : <RiLayoutLeft2Line className='h-5 w-5 text-components-menu-item-text' />
               }
             </div>
           </div>

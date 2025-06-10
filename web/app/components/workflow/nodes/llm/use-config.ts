@@ -8,9 +8,9 @@ import {
   useNodesReadOnly,
 } from '../../hooks'
 import useAvailableVarList from '../_base/hooks/use-available-var-list'
-import type { LLMNodeType } from './types'
-import { Resolution } from '@/types/app'
-import { useModelListAndDefaultModelAndCurrentProviderAndModel, useTextGenerationCurrentProviderAndModelAndModelList } from '@/app/components/header/account-setting/model-provider-page/hooks'
+import useConfigVision from '../../hooks/use-config-vision'
+import type { LLMNodeType, StructuredOutput } from './types'
+import { useModelList, useModelListAndDefaultModelAndCurrentProviderAndModel } from '@/app/components/header/account-setting/model-provider-page/hooks'
 import {
   ModelFeatureEnum,
   ModelTypeEnum,
@@ -100,7 +100,7 @@ const useConfig = (id: string, payload: LLMNodeType) => {
       })
       setInputs(newInputs)
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [defaultConfig, isChatModel])
 
   const [modelChanged, setModelChanged] = useState(false)
@@ -108,6 +108,21 @@ const useConfig = (id: string, payload: LLMNodeType) => {
     currentProvider,
     currentModel,
   } = useModelListAndDefaultModelAndCurrentProviderAndModel(ModelTypeEnum.textGeneration)
+
+  const {
+    isVisionModel,
+    handleVisionResolutionEnabledChange,
+    handleVisionResolutionChange,
+    handleModelChanged: handleVisionConfigAfterModelChanged,
+  } = useConfigVision(model, {
+    payload: inputs.vision,
+    onChange: (newPayload) => {
+      const newInputs = produce(inputs, (draft) => {
+        draft.vision = newPayload
+      })
+      setInputs(newInputs)
+    },
+  })
 
   const handleModelChanged = useCallback((model: { provider: string; modelId: string; mode?: string }) => {
     const newInputs = produce(inputRef.current, (draft) => {
@@ -139,44 +154,14 @@ const useConfig = (id: string, payload: LLMNodeType) => {
     setInputs(newInputs)
   }, [inputs, setInputs])
 
-  const {
-    currentModel: currModel,
-  } = useTextGenerationCurrentProviderAndModelAndModelList(
-    {
-      provider: model.provider,
-      model: model.name,
-    },
-  )
-  const isShowVisionConfig = !!currModel?.features?.includes(ModelFeatureEnum.vision)
   // change to vision model to set vision enabled, else disabled
   useEffect(() => {
     if (!modelChanged)
       return
     setModelChanged(false)
-    if (!isShowVisionConfig) {
-      const newInputs = produce(inputs, (draft) => {
-        draft.vision = {
-          enabled: false,
-        }
-      })
-      setInputs(newInputs)
-      return
-    }
-    if (!inputs.vision?.enabled) {
-      const newInputs = produce(inputs, (draft) => {
-        if (!draft.vision?.enabled) {
-          draft.vision = {
-            enabled: true,
-            configs: {
-              detail: Resolution.high,
-            },
-          }
-        }
-      })
-      setInputs(newInputs)
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isShowVisionConfig, modelChanged])
+    handleVisionConfigAfterModelChanged()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isVisionModel, modelChanged])
 
   // variables
   const isShowVars = (() => {
@@ -293,46 +278,40 @@ const useConfig = (id: string, payload: LLMNodeType) => {
     setInputs(newInputs)
   }, [inputs, setInputs])
 
-  const handleVisionResolutionEnabledChange = useCallback((enabled: boolean) => {
+  // structure output
+  const { data: modelList } = useModelList(ModelTypeEnum.textGeneration)
+  const isModelSupportStructuredOutput = modelList
+    ?.find(provideItem => provideItem.provider === model?.provider)
+    ?.models.find(modelItem => modelItem.model === model?.name)
+    ?.features?.includes(ModelFeatureEnum.StructuredOutput)
+
+  const [structuredOutputCollapsed, setStructuredOutputCollapsed] = useState(true)
+  const handleStructureOutputEnableChange = useCallback((enabled: boolean) => {
     const newInputs = produce(inputs, (draft) => {
-      if (!draft.vision) {
-        draft.vision = {
-          enabled,
-          configs: {
-            detail: Resolution.high,
-          },
-        }
-      }
-      else {
-        draft.vision.enabled = enabled
-        if (!draft.vision.configs) {
-          draft.vision.configs = {
-            detail: Resolution.high,
-          }
-        }
-      }
+      draft.structured_output_enabled = enabled
     })
     setInputs(newInputs)
+    if (enabled)
+      setStructuredOutputCollapsed(false)
   }, [inputs, setInputs])
 
-  const handleVisionResolutionChange = useCallback((newResolution: Resolution) => {
+  const handleStructureOutputChange = useCallback((newOutput: StructuredOutput) => {
     const newInputs = produce(inputs, (draft) => {
-      if (!draft.vision.configs) {
-        draft.vision.configs = {
-          detail: Resolution.high,
-        }
-      }
-      draft.vision.configs.detail = newResolution
+      draft.structured_output = newOutput
     })
     setInputs(newInputs)
   }, [inputs, setInputs])
 
   const filterInputVar = useCallback((varPayload: Var) => {
-    return [VarType.number, VarType.string, VarType.secret].includes(varPayload.type)
+    return [VarType.number, VarType.string, VarType.secret, VarType.arrayString, VarType.arrayNumber, VarType.file, VarType.arrayFile].includes(varPayload.type)
   }, [])
 
-  const filterVar = useCallback((varPayload: Var) => {
-    return [VarType.arrayObject, VarType.array, VarType.number, VarType.string, VarType.secret].includes(varPayload.type)
+  const filterJinjia2InputVar = useCallback((varPayload: Var) => {
+    return [VarType.number, VarType.string, VarType.secret, VarType.arrayString, VarType.arrayNumber].includes(varPayload.type)
+  }, [])
+
+  const filterMemoryPromptVar = useCallback((varPayload: Var) => {
+    return [VarType.arrayObject, VarType.array, VarType.number, VarType.string, VarType.secret, VarType.arrayString, VarType.arrayNumber, VarType.file, VarType.arrayFile].includes(varPayload.type)
   }, [])
 
   const {
@@ -340,7 +319,7 @@ const useConfig = (id: string, payload: LLMNodeType) => {
     availableNodesWithParent,
   } = useAvailableVarList(id, {
     onlyLeafNodeVar: false,
-    filterVar,
+    filterVar: filterMemoryPromptVar,
   })
 
   // single run
@@ -352,6 +331,7 @@ const useConfig = (id: string, payload: LLMNodeType) => {
     handleRun,
     handleStop,
     runInputData,
+    runInputDataRef,
     setRunInputData,
     runResult,
     toVarInputs,
@@ -377,27 +357,27 @@ const useConfig = (id: string, payload: LLMNodeType) => {
   const setInputVarValues = useCallback((newPayload: Record<string, any>) => {
     const newVars = {
       ...newPayload,
-      '#context#': runInputData['#context#'],
-      '#files#': runInputData['#files#'],
+      '#context#': runInputDataRef.current['#context#'],
+      '#files#': runInputDataRef.current['#files#'],
     }
     setRunInputData(newVars)
-  }, [runInputData, setRunInputData])
+  }, [runInputDataRef, setRunInputData])
 
   const contexts = runInputData['#context#']
   const setContexts = useCallback((newContexts: string[]) => {
     setRunInputData({
-      ...runInputData,
+      ...runInputDataRef.current,
       '#context#': newContexts,
     })
-  }, [runInputData, setRunInputData])
+  }, [runInputDataRef, setRunInputData])
 
   const visionFiles = runInputData['#files#']
   const setVisionFiles = useCallback((newFiles: any[]) => {
     setRunInputData({
-      ...runInputData,
+      ...runInputDataRef.current,
       '#files#': newFiles,
     })
-  }, [runInputData, setRunInputData])
+  }, [runInputDataRef, setRunInputData])
 
   const allVarStrArr = (() => {
     const arr = isChatModel ? (inputs.prompt_template as PromptItem[]).filter(item => item.edition_type !== EditionType.jinja2).map(item => item.text) : [(inputs.prompt_template as PromptItem).text]
@@ -425,7 +405,7 @@ const useConfig = (id: string, payload: LLMNodeType) => {
     isCompletionModel,
     hasSetBlockStatus,
     shouldShowContextTip,
-    isShowVisionConfig,
+    isVisionModel,
     handleModelChanged,
     handleCompletionParamsChange,
     isShowVars,
@@ -435,7 +415,7 @@ const useConfig = (id: string, payload: LLMNodeType) => {
     handleAddEmptyVariable,
     handleContextVarChange,
     filterInputVar,
-    filterVar,
+    filterVar: filterMemoryPromptVar,
     availableVars,
     availableNodesWithParent,
     handlePromptChange,
@@ -453,9 +433,15 @@ const useConfig = (id: string, payload: LLMNodeType) => {
     setContexts,
     varInputs,
     runningStatus,
+    isModelSupportStructuredOutput,
+    handleStructureOutputChange,
+    structuredOutputCollapsed,
+    setStructuredOutputCollapsed,
+    handleStructureOutputEnableChange,
     handleRun,
     handleStop,
     runResult,
+    filterJinjia2InputVar,
   }
 }
 

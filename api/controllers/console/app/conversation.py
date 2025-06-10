@@ -1,6 +1,6 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
-import pytz
+import pytz  # pip install pytz
 from flask_login import current_user
 from flask_restful import Resource, marshal_with, reqparse
 from flask_restful.inputs import int_range
@@ -10,8 +10,7 @@ from werkzeug.exceptions import Forbidden, NotFound
 
 from controllers.console import api
 from controllers.console.app.wraps import get_app_model
-from controllers.console.setup import setup_required
-from controllers.console.wraps import account_initialization_required
+from controllers.console.wraps import account_initialization_required, setup_required
 from core.app.entities.app_invoke_entities import InvokeFrom
 from extensions.ext_database import db
 from fields.conversation_fields import (
@@ -20,9 +19,10 @@ from fields.conversation_fields import (
     conversation_pagination_fields,
     conversation_with_summary_pagination_fields,
 )
-from libs.helper import datetime_string
+from libs.helper import DatetimeString
 from libs.login import login_required
-from models.model import AppMode, Conversation, EndUser, Message, MessageAnnotation
+from models import Conversation, EndUser, Message, MessageAnnotation
+from models.model import AppMode
 
 
 class CompletionConversationApi(Resource):
@@ -36,8 +36,8 @@ class CompletionConversationApi(Resource):
             raise Forbidden()
         parser = reqparse.RequestParser()
         parser.add_argument("keyword", type=str, location="args")
-        parser.add_argument("start", type=datetime_string("%Y-%m-%d %H:%M"), location="args")
-        parser.add_argument("end", type=datetime_string("%Y-%m-%d %H:%M"), location="args")
+        parser.add_argument("start", type=DatetimeString("%Y-%m-%d %H:%M"), location="args")
+        parser.add_argument("end", type=DatetimeString("%Y-%m-%d %H:%M"), location="args")
         parser.add_argument(
             "annotation_status", type=str, choices=["annotated", "not_annotated", "all"], default="all", location="args"
         )
@@ -77,8 +77,9 @@ class CompletionConversationApi(Resource):
 
             query = query.where(Conversation.created_at < end_datetime_utc)
 
+        # FIXME, the type ignore in this file
         if args["annotation_status"] == "annotated":
-            query = query.options(joinedload(Conversation.message_annotations)).join(
+            query = query.options(joinedload(Conversation.message_annotations)).join(  # type: ignore
                 MessageAnnotation, MessageAnnotation.conversation_id == Conversation.id
             )
         elif args["annotation_status"] == "not_annotated":
@@ -143,8 +144,8 @@ class ChatConversationApi(Resource):
             raise Forbidden()
         parser = reqparse.RequestParser()
         parser.add_argument("keyword", type=str, location="args")
-        parser.add_argument("start", type=datetime_string("%Y-%m-%d %H:%M"), location="args")
-        parser.add_argument("end", type=datetime_string("%Y-%m-%d %H:%M"), location="args")
+        parser.add_argument("start", type=DatetimeString("%Y-%m-%d %H:%M"), location="args")
+        parser.add_argument("end", type=DatetimeString("%Y-%m-%d %H:%M"), location="args")
         parser.add_argument(
             "annotation_status", type=str, choices=["annotated", "not_annotated", "all"], default="all", location="args"
         )
@@ -188,6 +189,7 @@ class ChatConversationApi(Resource):
                         subquery.c.from_end_user_session_id.ilike(keyword_filter),
                     ),
                 )
+                .group_by(Conversation.id)
             )
 
         account = current_user
@@ -201,7 +203,11 @@ class ChatConversationApi(Resource):
             start_datetime_timezone = timezone.localize(start_datetime)
             start_datetime_utc = start_datetime_timezone.astimezone(utc_timezone)
 
-            query = query.where(Conversation.created_at >= start_datetime_utc)
+            match args["sort_by"]:
+                case "updated_at" | "-updated_at":
+                    query = query.where(Conversation.updated_at >= start_datetime_utc)
+                case "created_at" | "-created_at" | _:
+                    query = query.where(Conversation.created_at >= start_datetime_utc)
 
         if args["end"]:
             end_datetime = datetime.strptime(args["end"], "%Y-%m-%d %H:%M")
@@ -210,10 +216,14 @@ class ChatConversationApi(Resource):
             end_datetime_timezone = timezone.localize(end_datetime)
             end_datetime_utc = end_datetime_timezone.astimezone(utc_timezone)
 
-            query = query.where(Conversation.created_at < end_datetime_utc)
+            match args["sort_by"]:
+                case "updated_at" | "-updated_at":
+                    query = query.where(Conversation.updated_at <= end_datetime_utc)
+                case "created_at" | "-created_at" | _:
+                    query = query.where(Conversation.created_at <= end_datetime_utc)
 
         if args["annotation_status"] == "annotated":
-            query = query.options(joinedload(Conversation.message_annotations)).join(
+            query = query.options(joinedload(Conversation.message_annotations)).join(  # type: ignore
                 MessageAnnotation, MessageAnnotation.conversation_id == Conversation.id
             )
         elif args["annotation_status"] == "not_annotated":
@@ -225,7 +235,7 @@ class ChatConversationApi(Resource):
 
         if args["message_count_gte"] and args["message_count_gte"] >= 1:
             query = (
-                query.options(joinedload(Conversation.messages))
+                query.options(joinedload(Conversation.messages))  # type: ignore
                 .join(Message, Message.conversation_id == Conversation.id)
                 .group_by(Conversation.id)
                 .having(func.count(Message.id) >= args["message_count_gte"])
@@ -305,7 +315,7 @@ def _get_conversation(app_model, conversation_id):
         raise NotFound("Conversation Not Exists.")
 
     if not conversation.read_at:
-        conversation.read_at = datetime.now(timezone.utc).replace(tzinfo=None)
+        conversation.read_at = datetime.now(UTC).replace(tzinfo=None)
         conversation.read_account_id = current_user.id
         db.session.commit()
 

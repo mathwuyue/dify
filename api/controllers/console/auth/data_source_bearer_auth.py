@@ -7,8 +7,7 @@ from controllers.console.auth.error import ApiKeyAuthFailedError
 from libs.login import login_required
 from services.auth.api_key_auth_service import ApiKeyAuthService
 
-from ..setup import setup_required
-from ..wraps import account_initialization_required
+from ..wraps import account_initialization_required, setup_required
 
 
 class ApiKeyAuthDataSource(Resource):
@@ -66,7 +65,7 @@ class ApiKeyAuthDataSourceBindingDelete(Resource):
 
         ApiKeyAuthService.delete_provider_auth(current_user.current_tenant_id, binding_id)
 
-        return {"result": "success"}, 200
+        return {"result": "success"}, 204
 
 
 api.add_resource(ApiKeyAuthDataSource, "/api-key-auth/data-source")

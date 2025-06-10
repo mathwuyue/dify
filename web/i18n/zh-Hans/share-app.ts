@@ -2,15 +2,19 @@ const translation = {
   common: {
     welcome: '',
     appUnavailable: '应用不可用',
-    appUnkonwError: '应用不可用',
+    appUnknownError: '应用不可用',
   },
   chat: {
-    newChat: '新对话',
+    newChat: '开启新对话',
+    newChatTip: '已在新对话中',
+    chatSettingsTitle: '新对话设置',
+    chatFormTip: '对话开始后，对话设置将无法修改。',
     pinnedTitle: '已置顶',
     unpinnedTitle: '对话列表',
     newChatDefaultName: '新的对话',
     resetChat: '重置对话',
-    powerBy: 'Powered by',
+    viewChatSettings: '查看对话设置',
+    poweredBy: 'Powered by',
     prompt: '提示词',
     privatePromptConfigTitle: '对话设置',
     publicPromptConfigTitle: '对话前提示词',
@@ -26,13 +30,14 @@ const translation = {
     },
     tryToSolve: '尝试解决',
     temporarySystemIssue: '抱歉，临时系统问题。',
+    expand: '展开',
+    collapse: '折叠',
   },
   generation: {
     tabs: {
       create: '运行一次',
       batch: '批量运行',
       saved: '已保存',
-
     },
     savedNoData: {
       title: '您还没有保存结果！',
@@ -44,6 +49,8 @@ const translation = {
     completionResult: '生成结果',
     queryPlaceholder: '请输入文本内容',
     run: '运行',
+    execution: '运行',
+    executions: '{{num}} 次运行',
     copy: '拷贝',
     resultTitle: 'AI 书写',
     noData: 'AI 会在这里给你惊喜。',

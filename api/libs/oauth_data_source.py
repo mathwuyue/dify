@@ -1,4 +1,6 @@
+import datetime
 import urllib.parse
+from typing import Any
 
 import requests
 from flask_login import current_user
@@ -59,16 +61,21 @@ class NotionOAuth(OAuthDataSource):
             "total": len(pages),
         }
         # save data source binding
-        data_source_binding = DataSourceOauthBinding.query.filter(
-            db.and_(
-                DataSourceOauthBinding.tenant_id == current_user.current_tenant_id,
-                DataSourceOauthBinding.provider == "notion",
-                DataSourceOauthBinding.access_token == access_token,
+        data_source_binding = (
+            db.session.query(DataSourceOauthBinding)
+            .filter(
+                db.and_(
+                    DataSourceOauthBinding.tenant_id == current_user.current_tenant_id,
+                    DataSourceOauthBinding.provider == "notion",
+                    DataSourceOauthBinding.access_token == access_token,
+                )
             )
-        ).first()
+            .first()
+        )
         if data_source_binding:
             data_source_binding.source_info = source_info
             data_source_binding.disabled = False
+            data_source_binding.updated_at = datetime.datetime.now(datetime.UTC).replace(tzinfo=None)
             db.session.commit()
         else:
             new_data_source_binding = DataSourceOauthBinding(
@@ -94,16 +101,21 @@ class NotionOAuth(OAuthDataSource):
             "total": len(pages),
         }
         # save data source binding
-        data_source_binding = DataSourceOauthBinding.query.filter(
-            db.and_(
-                DataSourceOauthBinding.tenant_id == current_user.current_tenant_id,
-                DataSourceOauthBinding.provider == "notion",
-                DataSourceOauthBinding.access_token == access_token,
+        data_source_binding = (
+            db.session.query(DataSourceOauthBinding)
+            .filter(
+                db.and_(
+                    DataSourceOauthBinding.tenant_id == current_user.current_tenant_id,
+                    DataSourceOauthBinding.provider == "notion",
+                    DataSourceOauthBinding.access_token == access_token,
+                )
             )
-        ).first()
+            .first()
+        )
         if data_source_binding:
             data_source_binding.source_info = source_info
             data_source_binding.disabled = False
+            data_source_binding.updated_at = datetime.datetime.now(datetime.UTC).replace(tzinfo=None)
             db.session.commit()
         else:
             new_data_source_binding = DataSourceOauthBinding(
@@ -117,14 +129,18 @@ class NotionOAuth(OAuthDataSource):
 
     def sync_data_source(self, binding_id: str):
         # save data source binding
-        data_source_binding = DataSourceOauthBinding.query.filter(
-            db.and_(
-                DataSourceOauthBinding.tenant_id == current_user.current_tenant_id,
-                DataSourceOauthBinding.provider == "notion",
-                DataSourceOauthBinding.id == binding_id,
-                DataSourceOauthBinding.disabled == False,
+        data_source_binding = (
+            db.session.query(DataSourceOauthBinding)
+            .filter(
+                db.and_(
+                    DataSourceOauthBinding.tenant_id == current_user.current_tenant_id,
+                    DataSourceOauthBinding.provider == "notion",
+                    DataSourceOauthBinding.id == binding_id,
+                    DataSourceOauthBinding.disabled == False,
+                )
             )
-        ).first()
+            .first()
+        )
         if data_source_binding:
             # get all authorized pages
             pages = self.get_authorized_pages(data_source_binding.access_token)
@@ -138,6 +154,7 @@ class NotionOAuth(OAuthDataSource):
             }
             data_source_binding.source_info = new_source_info
             data_source_binding.disabled = False
+            data_source_binding.updated_at = datetime.datetime.now(datetime.UTC).replace(tzinfo=None)
             db.session.commit()
         else:
             raise ValueError("Data source binding not found")
@@ -158,7 +175,7 @@ class NotionOAuth(OAuthDataSource):
             page_icon = page_result["icon"]
             if page_icon:
                 icon_type = page_icon["type"]
-                if icon_type == "external" or icon_type == "file":
+                if icon_type in {"external", "file"}:
                     url = page_icon[icon_type]["url"]
                     icon = {"type": "url", "url": url if url.startswith("http") else f"https://www.notion.so{url}"}
                 else:
@@ -191,7 +208,7 @@ class NotionOAuth(OAuthDataSource):
             page_icon = database_result["icon"]
             if page_icon:
                 icon_type = page_icon["type"]
-                if icon_type == "external" or icon_type == "file":
+                if icon_type in {"external", "file"}:
                     url = page_icon[icon_type]["url"]
                     icon = {"type": "url", "url": url if url.startswith("http") else f"https://www.notion.so{url}"}
                 else:
@@ -217,15 +234,29 @@ class NotionOAuth(OAuthDataSource):
         return pages
 
     def notion_page_search(self, access_token: str):
-        data = {"filter": {"value": "page", "property": "object"}}
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {access_token}",
-            "Notion-Version": "2022-06-28",
-        }
-        response = requests.post(url=self._NOTION_PAGE_SEARCH, json=data, headers=headers)
-        response_json = response.json()
-        results = response_json.get("results", [])
+        results = []
+        next_cursor = None
+        has_more = True
+
+        while has_more:
+            data: dict[str, Any] = {
+                "filter": {"value": "page", "property": "object"},
+                **({"start_cursor": next_cursor} if next_cursor else {}),
+            }
+            headers = {
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {access_token}",
+                "Notion-Version": "2022-06-28",
+            }
+
+            response = requests.post(url=self._NOTION_PAGE_SEARCH, json=data, headers=headers)
+            response_json = response.json()
+
+            results.extend(response_json.get("results", []))
+
+            has_more = response_json.get("has_more", False)
+            next_cursor = response_json.get("next_cursor", None)
+
         return results
 
     def notion_block_parent_page_id(self, access_token: str, block_id: str):
@@ -235,6 +266,9 @@ class NotionOAuth(OAuthDataSource):
         }
         response = requests.get(url=f"{self._NOTION_BLOCK_SEARCH}/{block_id}", headers=headers)
         response_json = response.json()
+        if response.status_code != 200:
+            message = response_json.get("message", "unknown error")
+            raise ValueError(f"Error fetching block parent page ID: {message}")
         parent = response_json["parent"]
         parent_type = parent["type"]
         if parent_type == "block_id":
@@ -256,13 +290,26 @@ class NotionOAuth(OAuthDataSource):
         return "workspace"
 
     def notion_database_search(self, access_token: str):
-        data = {"filter": {"value": "database", "property": "object"}}
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {access_token}",
-            "Notion-Version": "2022-06-28",
-        }
-        response = requests.post(url=self._NOTION_PAGE_SEARCH, json=data, headers=headers)
-        response_json = response.json()
-        results = response_json.get("results", [])
+        results = []
+        next_cursor = None
+        has_more = True
+
+        while has_more:
+            data: dict[str, Any] = {
+                "filter": {"value": "database", "property": "object"},
+                **({"start_cursor": next_cursor} if next_cursor else {}),
+            }
+            headers = {
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {access_token}",
+                "Notion-Version": "2022-06-28",
+            }
+            response = requests.post(url=self._NOTION_PAGE_SEARCH, json=data, headers=headers)
+            response_json = response.json()
+
+            results.extend(response_json.get("results", []))
+
+            has_more = response_json.get("has_more", False)
+            next_cursor = response_json.get("next_cursor", None)
+
         return results

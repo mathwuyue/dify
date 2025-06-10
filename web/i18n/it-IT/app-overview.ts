@@ -52,11 +52,14 @@ const translation = {
           title: 'Fasi del Workflow',
           show: 'Mostra',
           hide: 'Nascondi',
+          subTitle: 'Dettagli del flusso di lavoro',
+          showDesc: 'Mostrare o nascondere i dettagli del flusso di lavoro in WebApp',
         },
         chatColorTheme: 'Tema colore chat',
         chatColorThemeDesc: 'Imposta il tema colore del chatbot',
         chatColorThemeInverted: 'Inverso',
         invalidHexMessage: 'Valore esadecimale non valido',
+        invalidPrivacyPolicy: 'Link alla privacy policy non valido. Si prega di utilizzare un link valido che inizi con http o https',
         more: {
           entry: 'Mostra più impostazioni',
           copyright: 'Copyright',
@@ -71,7 +74,16 @@ const translation = {
             'Inserisci il testo del disclaimer personalizzato',
           customDisclaimerTip:
             'Il testo del disclaimer personalizzato verrà visualizzato sul lato client, fornendo informazioni aggiuntive sull\'applicazione',
+          copyrightTip: 'Visualizzare le informazioni sul copyright nella webapp',
+          copyrightTooltip: 'Si prega di eseguire l\'upgrade al piano Professional o superiore',
         },
+        sso: {
+          label: 'Autenticazione SSO',
+          title: 'WebApp SSO',
+          description: 'Tutti gli utenti devono effettuare l\'accesso con SSO prima di utilizzare WebApp',
+          tooltip: 'Contattare l\'amministratore per abilitare l\'SSO di WebApp',
+        },
+        modalTip: 'Impostazioni dell\'app Web lato client.',
       },
       embedded: {
         entry: 'Incorporato',
@@ -114,6 +126,7 @@ const translation = {
           operation: 'Documentazione',
         },
       },
+      launch: 'Lanciare',
     },
     apiInfo: {
       title: 'API del servizio backend',
@@ -132,8 +145,11 @@ const translation = {
     tokenPS: 'Token/s',
     totalMessages: {
       title: 'Totale Messaggi',
-      explanation:
-        'Conteggio delle interazioni giornaliere con l\'AI; ingegneria dei prompt/debug esclusi.',
+      explanation: 'Conteggio delle interazioni giornaliere con l\'IA.',
+    },
+    totalConversations: {
+      title: 'Conversazioni totali',
+      explanation: 'Conteggio delle conversazioni giornaliere con l\'IA; ingegneria/debug dei prompt esclusi.',
     },
     activeUsers: {
       title: 'Utenti Attivi',

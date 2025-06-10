@@ -48,11 +48,14 @@ const translation = {
           title: '工作流程步驟',
           show: '展示',
           hide: '隱藏',
+          subTitle: '工作流詳細資訊',
+          showDesc: '在 WebApp 中顯示或隱藏工作流詳細資訊',
         },
         chatColorTheme: '聊天顏色主題',
         chatColorThemeDesc: '設定聊天機器人的顏色主題',
         chatColorThemeInverted: '反轉',
         invalidHexMessage: '無效的十六進制值',
+        invalidPrivacyPolicy: '無效的隱私政策連結，請使用以 http 或 https 開頭的有效連結',
         more: {
           entry: '展示更多設定',
           copyright: '版權',
@@ -63,7 +66,16 @@ const translation = {
           customDisclaimer: '自定義免責聲明',
           customDisclaimerPlaceholder: '請輸入免責聲明',
           customDisclaimerTip: '客製化的免責聲明文字將在客戶端顯示，提供有關應用程式的額外資訊。',
+          copyrightTip: '在 Web 應用程式中顯示版權資訊',
+          copyrightTooltip: '請升級至專業計劃或以上',
         },
+        sso: {
+          description: '所有使用者在使用 WebApp 之前都需要使用 SSO 登錄',
+          title: 'WebApp SSO',
+          tooltip: '聯繫管理員以啟用 WebApp SSO',
+          label: 'SSO 身份驗證',
+        },
+        modalTip: '用戶端 Web 應用程式設置。',
       },
       embedded: {
         entry: '嵌入',
@@ -94,13 +106,14 @@ const translation = {
           step2Tip: '點選此處將倉庫匯入到 Vercel 中部署',
           step2Operation: '匯入倉庫',
           step3: '配置環境變數',
-          step3Tip: '在 Vecel 環境變數中新增以下環境變數',
+          step3Tip: '在 Vercel 環境變數中新增以下環境變數',
         },
         way2: {
           name: '編寫客戶端呼叫 API 並部署到伺服器中',
           operation: '檢視文件',
         },
       },
+      launch: '發射',
     },
     apiInfo: {
       title: '後端服務 API',
@@ -123,7 +136,11 @@ const translation = {
     },
     activeUsers: {
       title: '活躍使用者數',
-      explanation: '與 AI 有效互動，即有一問一答以上的唯一使用者數。提示詞編排和除錯的會話不計入。',
+      explanation: '每日AI互動次數。',
+    },
+    totalConversations: {
+      title: '總對話數',
+      explanation: '每日AI對話次數；不包括提示工程/調試。',
     },
     tokenUsage: {
       title: '費用消耗',
@@ -132,15 +149,15 @@ const translation = {
     },
     avgSessionInteractions: {
       title: '平均會話互動數',
-      explanation: '反應每個會話使用者的持續溝通次數，如果使用者與 AI 問答了 10 輪，即為 10。該指標反映了使用者粘性。僅在對話型應用提供。',
+      explanation: '反映每個會話使用者的持續溝通次數，如果使用者與 AI 問答了 10 輪，即為 10。該指標反映了使用者粘性。僅在對話型應用提供。',
     },
     avgUserInteractions: {
       title: '平均使用者呼叫次數',
-      explanation: '反應每天使用者的使用次數。該指標反映了使用者粘性。',
+      explanation: '反映每天使用者的使用次數。該指標反映了使用者粘性。',
     },
     userSatisfactionRate: {
       title: '使用者滿意度',
-      explanation: '每 1000 條訊息的點贊數。反應了使用者對回答十分滿意的比例。',
+      explanation: '每 1000 條訊息的點贊數。反映了使用者對回答十分滿意的比例。',
     },
     avgResponseTime: {
       title: '平均響應時間',

@@ -24,6 +24,8 @@ export type I18nText = {
   'pl-PL': string
   'hi-IN': string
   'fa-IR': string
+  'sl-SI': string
+  'th-TH': string
 }
 
 export const languages = data.languages
@@ -31,10 +33,28 @@ export const languages = data.languages
 export const LanguagesSupported = languages.filter(item => item.supported).map(item => item.value)
 
 export const getLanguage = (locale: string) => {
-  if (locale === 'zh-Hans')
+  if (['zh-Hans', 'ja-JP'].includes(locale))
     return locale.replace('-', '_')
 
   return LanguagesSupported[0].replace('-', '_')
+}
+
+const DOC_LANGUAGE: Record<string, string> = {
+  'zh-Hans': 'zh-hans',
+  'ja-JP': 'ja-jp',
+  'en-US': 'en',
+}
+
+export const getDocLanguage = (locale: string) => {
+  return DOC_LANGUAGE[locale] || 'en'
+}
+
+const PRICING_PAGE_LANGUAGE: Record<string, string> = {
+  'ja-JP': 'jp',
+}
+
+export const getPricingPageLanguage = (locale: string) => {
+  return PRICING_PAGE_LANGUAGE[locale] || ''
 }
 
 export const NOTICE_I18N = {
@@ -49,9 +69,12 @@ export const NOTICE_I18N = {
     ko_KR: '중요 공지',
     pl_PL: 'Ważne ogłoszenie',
     uk_UA: 'Важливе повідомлення',
+    ru_RU: 'Важное Уведомление',
     vi_VN: 'Thông báo quan trọng',
     it_IT: 'Avviso Importante',
     fa_IR: 'هشدار مهم',
+    sl_SI: 'Pomembno obvestilo',
+    th_TH: 'ประกาศสำคัญ',
   },
   desc: {
     en_US:
@@ -74,12 +97,18 @@ export const NOTICE_I18N = {
       'Nasz system będzie niedostępny od 19:00 do 24:00 UTC 28 sierpnia w celu aktualizacji. W przypadku pytań prosimy o kontakt z naszym zespołem wsparcia (support@dify.ai). Doceniamy Twoją cierpliwość.',
     uk_UA:
       'Наша система буде недоступна з 19:00 до 24:00 UTC 28 серпня для оновлення. Якщо у вас виникнуть запитання, будь ласка, зв’яжіться з нашою службою підтримки (support@dify.ai). Дякуємо за терпіння.',
+    ru_RU:
+      'Наша система будет недоступна с 19:00 до 24:00 UTC 28 августа для обновления. По вопросам, пожалуйста, обращайтесь в нашу службу поддержки (support@dify.ai). Спасибо за ваше терпение',
     vi_VN:
       'Hệ thống của chúng tôi sẽ ngừng hoạt động từ 19:00 đến 24:00 UTC vào ngày 28 tháng 8 để nâng cấp. Nếu có thắc mắc, vui lòng liên hệ với nhóm hỗ trợ của chúng tôi (support@dify.ai). Chúng tôi đánh giá cao sự kiên nhẫn của bạn.',
     tr_TR:
       'Sistemimiz, 28 Ağustos\'ta 19:00 ile 24:00 UTC saatleri arasında güncelleme nedeniyle kullanılamayacaktır. Sorularınız için lütfen destek ekibimizle iletişime geçin (support@dify.ai). Sabrınız için teşekkür ederiz.',
     fa_IR:
       'سیستم ما از ساعت 19:00 تا 24:00 UTC در تاریخ 28 اوت برای ارتقاء در دسترس نخواهد بود. برای سؤالات، لطفاً با تیم پشتیبانی ما (support@dify.ai) تماس بگیرید. ما برای صبر شما ارزش قائلیم.',
+    sl_SI:
+      'Naš sistem ne bo na voljo od 19:00 do 24:00 UTC 28. avgusta zaradi nadgradnje. Za vprašanja se obrnite na našo skupino za podporo (support@dify.ai). Cenimo vašo potrpežljivost.',
+    th_TH:
+      'ระบบของเราจะไม่สามารถใช้งานได้ตั้งแต่เวลา 19:00 ถึง 24:00 UTC ในวันที่ 28 สิงหาคม เพื่อทำการอัปเกรด หากมีคำถามใดๆ กรุณาติดต่อทีมสนับสนุนของเรา (support@dify.ai) เราขอขอบคุณในความอดทนของท่าน',
   },
   href: '#',
 }

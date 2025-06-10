@@ -2,7 +2,7 @@ const translation = {
   common: {
     welcome: '',
     appUnavailable: 'Ứng dụng không khả dụng',
-    appUnkonwError: 'Ứng dụng gặp lỗi không xác định',
+    appUnknownError: 'Ứng dụng gặp lỗi không xác định',
   },
   chat: {
     newChat: 'Cuộc trò chuyện mới',
@@ -10,7 +10,7 @@ const translation = {
     unpinnedTitle: 'Trò chuyện',
     newChatDefaultName: 'Cuộc trò chuyện mới',
     resetChat: 'Đặt lại cuộc trò chuyện',
-    powerBy: 'Được cung cấp bởi',
+    poweredBy: 'Được cung cấp bởi',
     prompt: 'Lời nhắc',
     privatePromptConfigTitle: 'Cài đặt cuộc trò chuyện',
     publicPromptConfigTitle: 'Lời nhắc ban đầu',
@@ -26,6 +26,12 @@ const translation = {
     },
     tryToSolve: 'Thử giải quyết',
     temporarySystemIssue: 'Xin lỗi, hệ thống đang gặp sự cố tạm thời.',
+    expand: 'Mở rộng',
+    collapse: 'Thu gọn',
+    chatFormTip: 'Cài đặt trò chuyện không thể được thay đổi sau khi cuộc trò chuyện đã bắt đầu.',
+    newChatTip: 'Đã ở trong một cuộc trò chuyện mới',
+    viewChatSettings: 'Xem cài đặt trò chuyện',
+    chatSettingsTitle: 'Cài đặt trò chuyện mới',
   },
   generation: {
     tabs: {
@@ -64,6 +70,8 @@ const translation = {
       moreThanMaxLengthLine: 'Dòng {{rowIndex}}: {{varName}} không thể chứa quá {{maxLength}} ký tự',
       atLeastOne: 'Vui lòng nhập ít nhất một dòng vào tệp đã tải lên.',
     },
+    executions: '{{num}} ÁN TỬ HÌNH',
+    execution: 'THI HÀNH',
   },
 }
 

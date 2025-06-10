@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from flask_login import current_user
 from flask_restful import Resource, marshal_with, reqparse
@@ -7,12 +7,11 @@ from werkzeug.exceptions import Forbidden, NotFound
 from constants.languages import supported_language
 from controllers.console import api
 from controllers.console.app.wraps import get_app_model
-from controllers.console.setup import setup_required
-from controllers.console.wraps import account_initialization_required
+from controllers.console.wraps import account_initialization_required, setup_required
 from extensions.ext_database import db
 from fields.app_fields import app_site_fields
 from libs.login import login_required
-from models.model import Site
+from models import Site
 
 
 def parse_app_site_args():
@@ -34,6 +33,7 @@ def parse_app_site_args():
     )
     parser.add_argument("prompt_public", type=bool, required=False, location="json")
     parser.add_argument("show_workflow_steps", type=bool, required=False, location="json")
+    parser.add_argument("use_icon_as_answer_icon", type=bool, required=False, location="json")
     return parser.parse_args()
 
 
@@ -50,7 +50,9 @@ class AppSite(Resource):
         if not current_user.is_editor:
             raise Forbidden()
 
-        site = db.session.query(Site).filter(Site.app_id == app_model.id).one_or_404()
+        site = db.session.query(Site).filter(Site.app_id == app_model.id).first()
+        if not site:
+            raise NotFound
 
         for attr_name in [
             "title",
@@ -68,13 +70,14 @@ class AppSite(Resource):
             "customize_token_strategy",
             "prompt_public",
             "show_workflow_steps",
+            "use_icon_as_answer_icon",
         ]:
             value = args.get(attr_name)
             if value is not None:
                 setattr(site, attr_name, value)
 
         site.updated_by = current_user.id
-        site.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
+        site.updated_at = datetime.now(UTC).replace(tzinfo=None)
         db.session.commit()
 
         return site
@@ -98,7 +101,7 @@ class AppSiteAccessTokenReset(Resource):
 
         site.code = Site.generate_code(16)
         site.updated_by = current_user.id
-        site.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
+        site.updated_at = datetime.now(UTC).replace(tzinfo=None)
         db.session.commit()
 
         return site

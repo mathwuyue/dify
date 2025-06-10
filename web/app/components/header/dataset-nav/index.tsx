@@ -42,8 +42,8 @@ const DatasetNav = () => {
 
   return (
     <Nav
-      icon={<RiBook2Line className='w-4 h-4' />}
-      activeIcon={<RiBook2Fill className='w-4 h-4' />}
+      icon={<RiBook2Line className='h-4 w-4' />}
+      activeIcon={<RiBook2Fill className='h-4 w-4' />}
       text={t('common.menus.datasets')}
       activeSegment='datasets'
       link='/datasets'
@@ -51,7 +51,7 @@ const DatasetNav = () => {
       navs={datasetItems.map(dataset => ({
         id: dataset.id,
         name: dataset.name,
-        link: `/datasets/${dataset.id}/documents`,
+        link: dataset.provider === 'external' ? `/datasets/${dataset.id}/hitTesting` : `/datasets/${dataset.id}/documents`,
         icon: dataset.icon,
         icon_background: dataset.icon_background,
       })) as NavItem[]}

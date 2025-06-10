@@ -21,7 +21,8 @@ from core.app.entities.app_invoke_entities import InvokeFrom
 from core.errors.error import ModelCurrentlyNotSupportError, ProviderTokenNotInitError, QuotaExceededError
 from core.model_runtime.errors.invoke import InvokeError
 from fields.conversation_fields import message_file_fields
-from fields.message_fields import agent_thought_fields
+from fields.message_fields import agent_thought_fields, feedback_fields, retriever_resource_fields
+from fields.raws import FilesContainedField
 from libs import helper
 from libs.helper import TimestampField, uuid_value
 from models.model import AppMode
@@ -33,38 +34,19 @@ from services.message_service import MessageService
 
 
 class MessageListApi(WebApiResource):
-    feedback_fields = {"rating": fields.String}
-
-    retriever_resource_fields = {
-        "id": fields.String,
-        "message_id": fields.String,
-        "position": fields.Integer,
-        "dataset_id": fields.String,
-        "dataset_name": fields.String,
-        "document_id": fields.String,
-        "document_name": fields.String,
-        "data_source_type": fields.String,
-        "segment_id": fields.String,
-        "score": fields.Float,
-        "hit_count": fields.Integer,
-        "word_count": fields.Integer,
-        "segment_position": fields.Integer,
-        "index_node_hash": fields.String,
-        "content": fields.String,
-        "created_at": TimestampField,
-    }
-
     message_fields = {
         "id": fields.String,
         "conversation_id": fields.String,
-        "inputs": fields.Raw,
+        "parent_message_id": fields.String,
+        "inputs": FilesContainedField,
         "query": fields.String,
         "answer": fields.String(attribute="re_sign_file_url_answer"),
-        "message_files": fields.List(fields.Nested(message_file_fields), attribute="files"),
+        "message_files": fields.List(fields.Nested(message_file_fields)),
         "feedback": fields.Nested(feedback_fields, attribute="user_feedback", allow_null=True),
         "retriever_resources": fields.List(fields.Nested(retriever_resource_fields)),
         "created_at": TimestampField,
         "agent_thoughts": fields.List(fields.Nested(agent_thought_fields)),
+        "metadata": fields.Raw(attribute="message_metadata_dict"),
         "status": fields.String,
         "error": fields.String,
     }
@@ -78,7 +60,7 @@ class MessageListApi(WebApiResource):
     @marshal_with(message_infinite_scroll_pagination_fields)
     def get(self, app_model, end_user):
         app_mode = AppMode.value_of(app_model.mode)
-        if app_mode not in [AppMode.CHAT, AppMode.AGENT_CHAT, AppMode.ADVANCED_CHAT]:
+        if app_mode not in {AppMode.CHAT, AppMode.AGENT_CHAT, AppMode.ADVANCED_CHAT}:
             raise NotChatAppError()
 
         parser = reqparse.RequestParser()
@@ -103,10 +85,17 @@ class MessageFeedbackApi(WebApiResource):
 
         parser = reqparse.RequestParser()
         parser.add_argument("rating", type=str, choices=["like", "dislike", None], location="json")
+        parser.add_argument("content", type=str, location="json", default=None)
         args = parser.parse_args()
 
         try:
-            MessageService.create_feedback(app_model, message_id, end_user, args["rating"])
+            MessageService.create_feedback(
+                app_model=app_model,
+                message_id=message_id,
+                user=end_user,
+                rating=args.get("rating"),
+                content=args.get("content"),
+            )
         except services.errors.message.MessageNotExistsError:
             raise NotFound("Message Not Exists.")
 
@@ -160,7 +149,7 @@ class MessageMoreLikeThisApi(WebApiResource):
 class MessageSuggestedQuestionApi(WebApiResource):
     def get(self, app_model, end_user, message_id):
         app_mode = AppMode.value_of(app_model.mode)
-        if app_mode not in [AppMode.CHAT, AppMode.AGENT_CHAT, AppMode.ADVANCED_CHAT]:
+        if app_mode not in {AppMode.CHAT, AppMode.AGENT_CHAT, AppMode.ADVANCED_CHAT}:
             raise NotCompletionAppError()
 
         message_id = str(message_id)

@@ -2,7 +2,7 @@ const translation = {
   common: {
     welcome: '',
     appUnavailable: 'Aplicația nu este disponibilă',
-    appUnkonwError: 'Aplicația nu este disponibilă',
+    appUnknownError: 'Aplicația nu este disponibilă',
   },
   chat: {
     newChat: 'Chat nou',
@@ -10,7 +10,7 @@ const translation = {
     unpinnedTitle: 'Conversații',
     newChatDefaultName: 'Conversație nouă',
     resetChat: 'Resetează conversația',
-    powerBy: 'Furnizat de',
+    poweredBy: 'Furnizat de',
     prompt: 'Sugestie',
     privatePromptConfigTitle: 'Setări conversație',
     publicPromptConfigTitle: 'Sugestie inițială',
@@ -30,6 +30,12 @@ const translation = {
     },
     tryToSolve: 'Încercați să rezolvați',
     temporarySystemIssue: 'Ne pare rău, problemă temporară a sistemului.',
+    expand: 'Extinde',
+    collapse: 'Restrânge',
+    chatFormTip: 'Setările chat-ului nu pot fi modificate după ce chat-ul a început.',
+    viewChatSettings: 'Vizualizează setările de chat',
+    newChatTip: 'Deja într-o discuție nouă',
+    chatSettingsTitle: 'Nouă configurare a chatului',
   },
   generation: {
     tabs: {
@@ -68,6 +74,8 @@ const translation = {
       moreThanMaxLengthLine: 'Rândul {{rowIndex}}: valoarea {{varName}} nu poate avea mai mult de {{maxLength}} caractere',
       atLeastOne: 'Vă rugăm să introduceți cel puțin un rând în fișierul încărcat.',
     },
+    execution: 'EXECUȚIE',
+    executions: '{{num}} EXECUȚII',
   },
 }
 

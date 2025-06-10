@@ -4,8 +4,7 @@ from flask_restful import Resource, marshal_with, reqparse
 from werkzeug.exceptions import Forbidden
 
 from controllers.console import api
-from controllers.console.setup import setup_required
-from controllers.console.wraps import account_initialization_required
+from controllers.console.wraps import account_initialization_required, setup_required
 from fields.tag_fields import tag_fields
 from libs.login import login_required
 from models.model import Tag
@@ -13,7 +12,7 @@ from services.tag_service import TagService
 
 
 def _validate_name(name):
-    if not name or len(name) < 1 or len(name) > 40:
+    if not name or len(name) < 1 or len(name) > 50:
         raise ValueError("Name must be between 1 to 50 characters.")
     return name
 
@@ -24,7 +23,7 @@ class TagListApi(Resource):
     @account_initialization_required
     @marshal_with(tag_fields)
     def get(self):
-        tag_type = request.args.get("type", type=str)
+        tag_type = request.args.get("type", type=str, default="")
         keyword = request.args.get("keyword", default=None, type=str)
         tags = TagService.get_tags(tag_type, current_user.current_tenant_id, keyword)
 
@@ -87,7 +86,7 @@ class TagUpdateDeleteApi(Resource):
 
         TagService.delete_tag(tag_id)
 
-        return 200
+        return 204
 
 
 class TagBindingCreateApi(Resource):

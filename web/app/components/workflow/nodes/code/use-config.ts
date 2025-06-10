@@ -3,7 +3,7 @@ import produce from 'immer'
 import useVarList from '../_base/hooks/use-var-list'
 import useOutputVarList from '../_base/hooks/use-output-var-list'
 import { BlockEnum, VarType } from '../../types'
-import type { Var } from '../../types'
+import type { Var, Variable } from '../../types'
 import { useStore } from '../../store'
 import type { CodeNodeType, OutputVar } from './types'
 import { CodeLanguage } from './types'
@@ -101,7 +101,7 @@ const useConfig = (id: string, payload: CodeNodeType) => {
   })
 
   const filterVar = useCallback((varPayload: Var) => {
-    return [VarType.string, VarType.number, VarType.secret, VarType.object, VarType.array, VarType.arrayNumber, VarType.arrayString, VarType.arrayObject].includes(varPayload.type)
+    return [VarType.string, VarType.number, VarType.secret, VarType.object, VarType.array, VarType.arrayNumber, VarType.arrayString, VarType.arrayObject, VarType.file, VarType.arrayFile].includes(varPayload.type)
   }, [])
 
   // single run
@@ -136,7 +136,15 @@ const useConfig = (id: string, payload: CodeNodeType) => {
   const setInputVarValues = useCallback((newPayload: Record<string, any>) => {
     setRunInputData(newPayload)
   }, [setRunInputData])
-
+  const handleCodeAndVarsChange = useCallback((code: string, inputVariables: Variable[], outputVariables: OutputVar) => {
+    const newInputs = produce(inputs, (draft) => {
+      draft.code = code
+      draft.variables = inputVariables
+      draft.outputs = outputVariables
+    })
+    setInputs(newInputs)
+    syncOutputKeyOrders(outputVariables)
+  }, [inputs, setInputs, syncOutputKeyOrders])
   return {
     readOnly,
     inputs,
@@ -163,6 +171,7 @@ const useConfig = (id: string, payload: CodeNodeType) => {
     inputVarValues,
     setInputVarValues,
     runResult,
+    handleCodeAndVarsChange,
   }
 }
 

@@ -6,7 +6,6 @@ from flask_restful.inputs import int_range
 from werkzeug.exceptions import InternalServerError, NotFound
 
 import services
-from controllers.console import api
 from controllers.console.app.error import (
     AppMoreLikeThisDisabledError,
     CompletionRequestError,
@@ -40,7 +39,7 @@ class MessageListApi(InstalledAppResource):
         app_model = installed_app.app
 
         app_mode = AppMode.value_of(app_model.mode)
-        if app_mode not in [AppMode.CHAT, AppMode.AGENT_CHAT, AppMode.ADVANCED_CHAT]:
+        if app_mode not in {AppMode.CHAT, AppMode.AGENT_CHAT, AppMode.ADVANCED_CHAT}:
             raise NotChatAppError()
 
         parser = reqparse.RequestParser()
@@ -67,10 +66,17 @@ class MessageFeedbackApi(InstalledAppResource):
 
         parser = reqparse.RequestParser()
         parser.add_argument("rating", type=str, choices=["like", "dislike", None], location="json")
+        parser.add_argument("content", type=str, location="json")
         args = parser.parse_args()
 
         try:
-            MessageService.create_feedback(app_model, message_id, current_user, args["rating"])
+            MessageService.create_feedback(
+                app_model=app_model,
+                message_id=message_id,
+                user=current_user,
+                rating=args.get("rating"),
+                content=args.get("content"),
+            )
         except services.errors.message.MessageNotExistsError:
             raise NotFound("Message Not Exists.")
 
@@ -125,7 +131,7 @@ class MessageSuggestedQuestionApi(InstalledAppResource):
     def get(self, installed_app, message_id):
         app_model = installed_app.app
         app_mode = AppMode.value_of(app_model.mode)
-        if app_mode not in [AppMode.CHAT, AppMode.AGENT_CHAT, AppMode.ADVANCED_CHAT]:
+        if app_mode not in {AppMode.CHAT, AppMode.AGENT_CHAT, AppMode.ADVANCED_CHAT}:
             raise NotChatAppError()
 
         message_id = str(message_id)
@@ -153,21 +159,3 @@ class MessageSuggestedQuestionApi(InstalledAppResource):
             raise InternalServerError()
 
         return {"data": questions}
-
-
-api.add_resource(MessageListApi, "/installed-apps/<uuid:installed_app_id>/messages", endpoint="installed_app_messages")
-api.add_resource(
-    MessageFeedbackApi,
-    "/installed-apps/<uuid:installed_app_id>/messages/<uuid:message_id>/feedbacks",
-    endpoint="installed_app_message_feedback",
-)
-api.add_resource(
-    MessageMoreLikeThisApi,
-    "/installed-apps/<uuid:installed_app_id>/messages/<uuid:message_id>/more-like-this",
-    endpoint="installed_app_more_like_this",
-)
-api.add_resource(
-    MessageSuggestedQuestionApi,
-    "/installed-apps/<uuid:installed_app_id>/messages/<uuid:message_id>/suggested-questions",
-    endpoint="installed_app_suggested_question",
-)

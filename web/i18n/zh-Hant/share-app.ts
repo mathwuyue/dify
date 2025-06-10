@@ -2,7 +2,7 @@ const translation = {
   common: {
     welcome: '',
     appUnavailable: '應用不可用',
-    appUnkonwError: '應用不可用',
+    appUnknownError: '應用不可用',
   },
   chat: {
     newChat: '新對話',
@@ -10,7 +10,7 @@ const translation = {
     unpinnedTitle: '對話列表',
     newChatDefaultName: '新的對話',
     resetChat: '重置對話',
-    powerBy: 'Powered by',
+    poweredBy: 'Powered by',
     prompt: '提示詞',
     privatePromptConfigTitle: '對話設定',
     publicPromptConfigTitle: '對話前提示詞',
@@ -26,13 +26,18 @@ const translation = {
     },
     tryToSolve: '嘗試解決',
     temporarySystemIssue: '抱歉，臨時系統問題。',
+    expand: '展開',
+    collapse: '摺疊',
+    newChatTip: '已經在一個新聊天中',
+    chatSettingsTitle: '新的聊天設置',
+    chatFormTip: '聊天設定在聊天開始後無法修改。',
+    viewChatSettings: '查看聊天設定',
   },
   generation: {
     tabs: {
       create: '執行一次',
       batch: '批次執行',
       saved: '已儲存',
-
     },
     savedNoData: {
       title: '您還沒有儲存結果！',
@@ -65,6 +70,8 @@ const translation = {
       moreThanMaxLengthLine: '第 {{rowIndex}} 行: {{varName}}值超過最大長度 {{maxLength}}',
       atLeastOne: '上傳檔案的內容不能少於一條',
     },
+    execution: '執行',
+    executions: '{{num}} 執行',
   },
 }
 

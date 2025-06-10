@@ -2,7 +2,7 @@ const translation = {
   common: {
     welcome: '',
     appUnavailable: 'Aplikacja jest niedostępna',
-    appUnkonwError: 'Aplikacja jest niedostępna',
+    appUnknownError: 'Aplikacja jest niedostępna',
   },
   chat: {
     newChat: 'Nowy czat',
@@ -10,7 +10,7 @@ const translation = {
     unpinnedTitle: 'Czaty',
     newChatDefaultName: 'Nowa rozmowa',
     resetChat: 'Resetuj rozmowę',
-    powerBy: 'Działany przez',
+    poweredBy: 'Działany przez',
     prompt: 'Podpowiedź',
     privatePromptConfigTitle: 'Ustawienia rozmowy',
     publicPromptConfigTitle: 'Początkowa podpowiedź',
@@ -27,6 +27,12 @@ const translation = {
     },
     tryToSolve: 'Spróbuj rozwiązać',
     temporarySystemIssue: 'Przepraszamy, tymczasowy problem systemowy.',
+    expand: 'Rozwiń',
+    collapse: 'Zwiń',
+    chatSettingsTitle: 'Nowa konfiguracja czatu',
+    viewChatSettings: 'Zobacz ustawienia czatu',
+    chatFormTip: 'Ustawienia czatu nie mogą być modyfikowane po rozpoczęciu czatu.',
+    newChatTip: 'Już w nowej czacie',
   },
   generation: {
     tabs: {
@@ -69,6 +75,8 @@ const translation = {
       atLeastOne:
         'Proszę wprowadź co najmniej jeden wiersz w załadowanym pliku.',
     },
+    executions: '{{num}} EGZEKUCJI',
+    execution: 'WYKONANIE',
   },
 }
 

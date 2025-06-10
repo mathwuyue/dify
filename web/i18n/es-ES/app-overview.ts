@@ -48,11 +48,14 @@ const translation = {
           title: 'Pasos del flujo de trabajo',
           show: 'Mostrar',
           hide: 'Ocultar',
+          subTitle: 'Detalles del flujo de trabajo',
+          showDesc: 'Mostrar u ocultar detalles del flujo de trabajo en WebApp',
         },
         chatColorTheme: 'Tema de color del chat',
         chatColorThemeDesc: 'Establece el tema de color del chatbot',
         chatColorThemeInverted: 'Invertido',
         invalidHexMessage: 'Valor hexadecimal no válido',
+        invalidPrivacyPolicy: 'Enlace de política de privacidad no válido. Por favor, utiliza un enlace válido que comience con http o https',
         more: {
           entry: 'Mostrar más configuraciones',
           copyright: 'Derechos de autor',
@@ -63,7 +66,16 @@ const translation = {
           customDisclaimer: 'Descargo de responsabilidad personalizado',
           customDisclaimerPlaceholder: 'Ingresa el texto de descargo de responsabilidad personalizado',
           customDisclaimerTip: 'El texto de descargo de responsabilidad personalizado se mostrará en el lado del cliente, proporcionando información adicional sobre la aplicación',
+          copyrightTip: 'Mostrar información de derechos de autor en la aplicación web',
+          copyrightTooltip: 'Actualice al plan Profesional o superior',
         },
+        sso: {
+          description: 'Todos los usuarios deben iniciar sesión con SSO antes de usar WebApp',
+          tooltip: 'Póngase en contacto con el administrador para habilitar el inicio de sesión único de WebApp',
+          label: 'Autenticación SSO',
+          title: 'WebApp SSO',
+        },
+        modalTip: 'Configuración de la aplicación web del lado del cliente.',
       },
       embedded: {
         entry: 'Incrustado',
@@ -101,6 +113,7 @@ const translation = {
           operation: 'Documentación',
         },
       },
+      launch: 'Lanzar',
     },
     apiInfo: {
       title: 'API del servicio backend',
@@ -119,7 +132,11 @@ const translation = {
     tokenPS: 'Token/s',
     totalMessages: {
       title: 'Mensajes totales',
-      explanation: 'Recuento diario de interacciones de IA; excluye la ingeniería/depuración de prompts.',
+      explanation: 'Recuento diario de interacciones con IA.',
+    },
+    totalConversations: {
+      title: 'Conversaciones totales',
+      explanation: 'Recuento diario de conversaciones con IA; ingeniería/depuración de prompts excluida.',
     },
     activeUsers: {
       title: 'Usuarios activos',

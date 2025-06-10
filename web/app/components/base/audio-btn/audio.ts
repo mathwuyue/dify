@@ -2,7 +2,7 @@ import Toast from '@/app/components/base/toast'
 import { textToAudioStream } from '@/service/share'
 
 declare global {
-  // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+  // eslint-disable-next-line ts/consistent-type-definitions
   interface Window {
     ManagedMediaSource: any
   }
@@ -12,7 +12,7 @@ export default class AudioPlayer {
   mediaSource: MediaSource | null
   audio: HTMLAudioElement
   audioContext: AudioContext
-  sourceBuffer?: SourceBuffer
+  sourceBuffer?: any
   cacheBuffers: ArrayBuffer[] = []
   pauseTimer: number | null = null
   msgId: string | undefined
@@ -21,9 +21,9 @@ export default class AudioPlayer {
   isLoadData = false
   url: string
   isPublic: boolean
-  callback: ((event: string) => {}) | null
+  callback: ((event: string) => void) | null
 
-  constructor(streamUrl: string, isPublic: boolean, msgId: string | undefined, msgContent: string | null | undefined, voice: string | undefined, callback: ((event: string) => {}) | null) {
+  constructor(streamUrl: string, isPublic: boolean, msgId: string | undefined, msgContent: string | null | undefined, voice: string | undefined, callback: ((event: string) => void) | null) {
     this.audioContext = new AudioContext()
     this.msgId = msgId
     this.msgContent = msgContent
@@ -33,7 +33,7 @@ export default class AudioPlayer {
     this.callback = callback
 
     // Compatible with iphone ios17 ManagedMediaSource
-    const MediaSource = window.MediaSource || window.ManagedMediaSource
+    const MediaSource = window.ManagedMediaSource || window.MediaSource
     if (!MediaSource) {
       Toast.notify({
         message: 'Your browser does not support audio streaming, if you are using an iPhone, please update to iOS 17.1 or later.',
@@ -43,6 +43,10 @@ export default class AudioPlayer {
     this.mediaSource = MediaSource ? new MediaSource() : null
     this.audio = new Audio()
     this.setCallback(callback)
+    if (!window.MediaSource) { // if use  ManagedMediaSource
+      this.audio.disableRemotePlayback = true
+      this.audio.controls = true
+    }
     this.audio.src = this.mediaSource ? URL.createObjectURL(this.mediaSource) : ''
     this.audio.autoplay = true
 
@@ -64,7 +68,7 @@ export default class AudioPlayer {
     })
   }
 
-  public setCallback(callback: ((event: string) => {}) | null) {
+  public setCallback(callback: ((event: string) => void) | null) {
     this.callback = callback
     if (callback) {
       this.audio.addEventListener('ended', () => {
@@ -121,7 +125,7 @@ export default class AudioPlayer {
         this.receiveAudioData(value)
       }
     }
-    catch (error) {
+    catch {
       this.isLoadData = false
       this.callback && this.callback('error')
     }
@@ -205,10 +209,6 @@ export default class AudioPlayer {
     this.callback && this.callback('paused')
     this.audio.pause()
     this.audioContext.suspend()
-  }
-
-  private cancer() {
-
   }
 
   private receiveAudioData(unit8Array: Uint8Array) {

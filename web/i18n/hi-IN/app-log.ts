@@ -54,6 +54,7 @@ const translation = {
     },
     variables: 'वेरिएबल्स',
     uploadImages: 'अपलोड की गई छवियाँ',
+    modelParams: 'मॉडल पैरामीटर',
   },
   filter: {
     period: {
@@ -81,6 +82,8 @@ const translation = {
   runDetail: {
     title: 'बातचीत लॉग',
     workflowTitle: 'लॉग विवरण',
+    fileListDetail: 'विस्तार',
+    fileListLabel: 'फ़ाइल विवरण',
   },
   promptLog: 'प्रॉम्प्ट लॉग',
   agentLog: 'एजेंट लॉग',
@@ -93,6 +96,10 @@ const translation = {
     promptTemplate: 'प्रॉम्प्ट टेम्पलेट',
     promptInput: 'प्रॉम्प्ट इनपुट',
     response: 'प्रतिक्रिया',
+    iterations: 'पुनरूक्तियाँ',
+    toolUsed: 'प्रयुक्त उपकरण',
+    finalProcessing: 'अंतिम प्रसंस्करण',
+    iteration: 'चलना',
   },
 }
 

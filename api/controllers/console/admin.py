@@ -1,10 +1,12 @@
-import os
 from functools import wraps
 
 from flask import request
 from flask_restful import Resource, reqparse
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 from werkzeug.exceptions import NotFound, Unauthorized
 
+from configs import dify_config
 from constants.languages import supported_language
 from controllers.console import api
 from controllers.console.wraps import only_edition_cloud
@@ -15,7 +17,7 @@ from models.model import App, InstalledApp, RecommendedApp
 def admin_required(view):
     @wraps(view)
     def decorated(*args, **kwargs):
-        if not os.getenv("ADMIN_API_KEY"):
+        if not dify_config.ADMIN_API_KEY:
             raise Unauthorized("API key is invalid.")
 
         auth_header = request.headers.get("Authorization")
@@ -31,7 +33,7 @@ def admin_required(view):
         if auth_scheme != "bearer":
             raise Unauthorized("Invalid Authorization header format. Expected 'Bearer <api-key>' format.")
 
-        if os.getenv("ADMIN_API_KEY") != auth_token:
+        if auth_token != dify_config.ADMIN_API_KEY:
             raise Unauthorized("API key is invalid.")
 
         return view(*args, **kwargs)
@@ -54,31 +56,27 @@ class InsertExploreAppListApi(Resource):
         parser.add_argument("position", type=int, required=True, nullable=False, location="json")
         args = parser.parse_args()
 
-        app = App.query.filter(App.id == args["app_id"]).first()
+        with Session(db.engine) as session:
+            app = session.execute(select(App).filter(App.id == args["app_id"])).scalar_one_or_none()
         if not app:
-            raise NotFound(f'App \'{args["app_id"]}\' is not found')
+            raise NotFound(f"App '{args['app_id']}' is not found")
 
         site = app.site
         if not site:
-            desc = args["desc"] if args["desc"] else ""
-            copy_right = args["copyright"] if args["copyright"] else ""
-            privacy_policy = args["privacy_policy"] if args["privacy_policy"] else ""
-            custom_disclaimer = args["custom_disclaimer"] if args["custom_disclaimer"] else ""
+            desc = args["desc"] or ""
+            copy_right = args["copyright"] or ""
+            privacy_policy = args["privacy_policy"] or ""
+            custom_disclaimer = args["custom_disclaimer"] or ""
         else:
-            desc = site.description if site.description else args["desc"] if args["desc"] else ""
-            copy_right = site.copyright if site.copyright else args["copyright"] if args["copyright"] else ""
-            privacy_policy = (
-                site.privacy_policy if site.privacy_policy else args["privacy_policy"] if args["privacy_policy"] else ""
-            )
-            custom_disclaimer = (
-                site.custom_disclaimer
-                if site.custom_disclaimer
-                else args["custom_disclaimer"]
-                if args["custom_disclaimer"]
-                else ""
-            )
+            desc = site.description or args["desc"] or ""
+            copy_right = site.copyright or args["copyright"] or ""
+            privacy_policy = site.privacy_policy or args["privacy_policy"] or ""
+            custom_disclaimer = site.custom_disclaimer or args["custom_disclaimer"] or ""
 
-        recommended_app = RecommendedApp.query.filter(RecommendedApp.app_id == args["app_id"]).first()
+        with Session(db.engine) as session:
+            recommended_app = session.execute(
+                select(RecommendedApp).filter(RecommendedApp.app_id == args["app_id"])
+            ).scalar_one_or_none()
 
         if not recommended_app:
             recommended_app = RecommendedApp(
@@ -118,17 +116,27 @@ class InsertExploreAppApi(Resource):
     @only_edition_cloud
     @admin_required
     def delete(self, app_id):
-        recommended_app = RecommendedApp.query.filter(RecommendedApp.app_id == str(app_id)).first()
+        with Session(db.engine) as session:
+            recommended_app = session.execute(
+                select(RecommendedApp).filter(RecommendedApp.app_id == str(app_id))
+            ).scalar_one_or_none()
+
         if not recommended_app:
             return {"result": "success"}, 204
 
-        app = App.query.filter(App.id == recommended_app.app_id).first()
+        with Session(db.engine) as session:
+            app = session.execute(select(App).filter(App.id == recommended_app.app_id)).scalar_one_or_none()
+
         if app:
             app.is_public = False
 
-        installed_apps = InstalledApp.query.filter(
-            InstalledApp.app_id == recommended_app.app_id, InstalledApp.tenant_id != InstalledApp.app_owner_tenant_id
-        ).all()
+        with Session(db.engine) as session:
+            installed_apps = session.execute(
+                select(InstalledApp).filter(
+                    InstalledApp.app_id == recommended_app.app_id,
+                    InstalledApp.tenant_id != InstalledApp.app_owner_tenant_id,
+                )
+            ).all()
 
         for installed_app in installed_apps:
             db.session.delete(installed_app)

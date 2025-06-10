@@ -13,6 +13,12 @@ const translation = {
       messageCount: 'Nachrichtenzahl',
       userRate: 'Benutzerbewertung',
       adminRate: 'Op. Bewertung',
+      user: 'Endbenutzer oder Konto',
+      status: 'STATUS',
+      runtime: 'LAUFZEIT',
+      version: 'VERSION',
+      tokens: 'TOKEN',
+      startTime: 'STARTZEIT',
     },
     pagination: {
       previous: 'Vorherige',
@@ -46,6 +52,7 @@ const translation = {
     },
     variables: 'Variablen',
     uploadImages: 'Hochgeladene Bilder',
+    modelParams: 'Modellparameter',
   },
   filter: {
     period: {
@@ -73,6 +80,8 @@ const translation = {
   runDetail: {
     title: 'Konversationsprotokoll',
     workflowTitle: 'Protokolldetail',
+    fileListLabel: 'Details zur Datei',
+    fileListDetail: 'Detail',
   },
   promptLog: 'Prompt-Protokoll',
   agentLog: 'Agentenprotokoll',

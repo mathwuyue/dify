@@ -48,11 +48,14 @@ const translation = {
           title: 'مراحل کاری',
           show: 'نمایش',
           hide: 'مخفی کردن',
+          showDesc: 'نمایش یا پنهان کردن جزئیات گردش کار در WebApp',
+          subTitle: 'جزئیات گردش کار',
         },
         chatColorTheme: 'تم رنگی چت',
         chatColorThemeDesc: 'تم رنگی چت‌بات را تنظیم کنید',
         chatColorThemeInverted: 'معکوس',
         invalidHexMessage: 'مقدار هگز نامعتبر',
+        invalidPrivacyPolicy: 'لینک سیاست حفظ حریم خصوصی نامعتبر است. لطفاً از یک لینک معتبر که با http یا https شروع میشود استفاده کنید',
         more: {
           entry: 'نمایش تنظیمات بیشتر',
           copyright: 'حق نسخه‌برداری',
@@ -63,7 +66,16 @@ const translation = {
           customDisclaimer: 'سلب مسئولیت سفارشی',
           customDisclaimerPlaceholder: 'متن سلب مسئولیت سفارشی را وارد کنید',
           customDisclaimerTip: 'متن سلب مسئولیت سفارشی در سمت مشتری نمایش داده می‌شود و اطلاعات بیشتری درباره برنامه ارائه می‌دهد',
+          copyrightTip: 'نمایش اطلاعات حق نسخه برداری در برنامه وب',
+          copyrightTooltip: 'لطفا به طرح حرفه ای یا بالاتر ارتقا دهید',
         },
+        sso: {
+          title: 'WebApp SSO',
+          label: 'احراز هویت SSO',
+          description: 'همه کاربران باید قبل از استفاده از WebApp با SSO وارد شوند',
+          tooltip: 'برای فعال کردن WebApp SSO با سرپرست تماس بگیرید',
+        },
+        modalTip: 'تنظیمات برنامه وب سمت مشتری.',
       },
       embedded: {
         entry: 'جاسازی شده',
@@ -101,6 +113,7 @@ const translation = {
           operation: 'مستندات',
         },
       },
+      launch: 'راه اندازی',
     },
     apiInfo: {
       title: 'API سرویس بک‌اند',
@@ -119,7 +132,11 @@ const translation = {
     tokenPS: 'توکن/ثانیه',
     totalMessages: {
       title: 'کل پیام‌ها',
-      explanation: 'تعداد تعاملات روزانه با AI؛ مهندسی/اشکال‌زدایی دستورات مستثنی هستند.',
+      explanation: 'تعداد تعاملات روزانه با هوش مصنوعی.',
+    },
+    totalConversations: {
+      title: 'کل مکالمات',
+      explanation: 'تعداد مکالمات روزانه با هوش مصنوعی؛ مهندسی/اشکال‌زدایی پرامپت مستثنی است.',
     },
     activeUsers: {
       title: 'کاربران فعال',

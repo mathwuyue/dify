@@ -8,9 +8,10 @@ export type AppBasicInfo = {
   icon_url: string
   name: string
   description: string
+  use_icon_as_answer_icon: boolean
 }
 
-export type AppCategory = 'Writing' | 'Translate' | 'HR' | 'Programming' | 'Assistant'
+export type AppCategory = 'Writing' | 'Translate' | 'HR' | 'Programming' | 'Assistant' | 'Agent' | 'Recommended' | 'Workflow'
 
 export type App = {
   app: AppBasicInfo

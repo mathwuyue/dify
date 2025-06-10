@@ -2,7 +2,7 @@ const translation = {
   common: {
     welcome: '',
     appUnavailable: 'La aplicación no está disponible',
-    appUnkonwError: 'La aplicación no está disponible',
+    appUnknownError: 'La aplicación no está disponible',
   },
   chat: {
     newChat: 'Nuevo chat',
@@ -10,7 +10,7 @@ const translation = {
     unpinnedTitle: 'Chats',
     newChatDefaultName: 'Nueva conversación',
     resetChat: 'Reiniciar conversación',
-    powerBy: 'Desarrollado por',
+    poweredBy: 'Desarrollado por',
     prompt: 'Indicación',
     privatePromptConfigTitle: 'Configuración de la conversación',
     publicPromptConfigTitle: 'Indicación inicial',
@@ -30,6 +30,12 @@ const translation = {
     },
     tryToSolve: 'Intentar resolver',
     temporarySystemIssue: 'Lo sentimos, hay un problema temporal del sistema.',
+    expand: 'Ampliar',
+    collapse: 'Contraer',
+    viewChatSettings: 'Ver configuraciones de chat',
+    newChatTip: 'Ya en un nuevo chat',
+    chatFormTip: 'No se pueden modificar los ajustes del chat después de que el chat ha comenzado.',
+    chatSettingsTitle: 'Nueva configuración de chat',
   },
   generation: {
     tabs: {
@@ -68,6 +74,8 @@ const translation = {
       moreThanMaxLengthLine: 'Fila {{rowIndex}}: el valor de {{varName}} no puede tener más de {{maxLength}} caracteres',
       atLeastOne: 'Por favor, ingresa al menos una fila en el archivo cargado.',
     },
+    execution: 'EJECUCIÓN',
+    executions: '{{num}} EJECUCIONES',
   },
 }
 

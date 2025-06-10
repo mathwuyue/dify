@@ -19,7 +19,7 @@ const Icon = () => {
 type NodeResizerProps = {
   nodeId: string
   nodeData: CommonNodeType
-  icon?: JSX.Element
+  icon?: React.JSX.Element
   minWidth?: number
   minHeight?: number
   maxWidth?: number
@@ -28,8 +28,8 @@ const NodeResizer = ({
   nodeId,
   nodeData,
   icon = <Icon />,
-  minWidth = 272,
-  minHeight = 176,
+  minWidth = 258,
+  minHeight = 152,
   maxWidth,
 }: NodeResizerProps) => {
   const { handleNodeResize } = useNodesInteractions()

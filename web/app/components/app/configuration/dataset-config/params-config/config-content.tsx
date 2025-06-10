@@ -1,25 +1,17 @@
 'use client'
 
-import { memo, useMemo } from 'react'
+import { memo, useCallback, useEffect, useMemo } from 'react'
 import type { FC } from 'react'
 import { useTranslation } from 'react-i18next'
-import {
-  RiAlertFill,
-} from '@remixicon/react'
 import WeightedScore from './weighted-score'
 import TopKItem from '@/app/components/base/param-item/top-k-item'
 import ScoreThresholdItem from '@/app/components/base/param-item/score-threshold-item'
-import RadioCard from '@/app/components/base/radio-card/simple'
 import { RETRIEVE_TYPE } from '@/types/app'
-import {
-  MultiPathRetrieval,
-  NTo1Retrieval,
-} from '@/app/components/base/icons/src/public/common'
 import type {
   DatasetConfigs,
 } from '@/models/debug'
 import ModelSelector from '@/app/components/header/account-setting/model-provider-page/model-selector'
-import { useModelListAndDefaultModelAndCurrentProviderAndModel } from '@/app/components/header/account-setting/model-provider-page/hooks'
+import { useCurrentProviderAndModel, useModelListAndDefaultModelAndCurrentProviderAndModel } from '@/app/components/header/account-setting/model-provider-page/hooks'
 import type { ModelConfig } from '@/app/components/workflow/types'
 import ModelParameterModal from '@/app/components/header/account-setting/model-provider-page/model-parameter-modal'
 import Tooltip from '@/app/components/base/tooltip'
@@ -31,7 +23,9 @@ import { RerankingModeEnum } from '@/models/datasets'
 import cn from '@/utils/classnames'
 import { useSelectedDatasetsMode } from '@/app/components/workflow/nodes/knowledge-retrieval/hooks'
 import Switch from '@/app/components/base/switch'
-import { useGetLanguage } from '@/context/i18n'
+import Toast from '@/app/components/base/toast'
+import Divider from '@/app/components/base/divider'
+import { noop } from 'lodash-es'
 
 type Props = {
   datasetConfigs: DatasetConfigs
@@ -43,48 +37,48 @@ type Props = {
   selectedDatasets?: DataSet[]
 }
 
-const LEGACY_LINK_MAP = {
-  en_US: 'https://docs.dify.ai/guides/knowledge-base/integrate-knowledge-within-application',
-  zh_Hans: 'https://docs.dify.ai/v/zh-hans/guides/knowledge-base/integrate_knowledge_within_application',
-} as Record<string, string>
-
 const ConfigContent: FC<Props> = ({
   datasetConfigs,
   onChange,
   isInWorkflow,
   singleRetrievalModelConfig: singleRetrievalConfig = {} as ModelConfig,
-  onSingleRetrievalModelChange = () => { },
-  onSingleRetrievalModelParamsChange = () => { },
+  onSingleRetrievalModelChange = noop,
+  onSingleRetrievalModelParamsChange = noop,
   selectedDatasets = [],
 }) => {
   const { t } = useTranslation()
-  const language = useGetLanguage()
   const selectedDatasetsMode = useSelectedDatasetsMode(selectedDatasets)
   const type = datasetConfigs.retrieval_model
-  const setType = (value: RETRIEVE_TYPE) => {
-    onChange({
-      ...datasetConfigs,
-      retrieval_model: value,
-    }, true)
-  }
+
+  useEffect(() => {
+    if (type === RETRIEVE_TYPE.oneWay) {
+      onChange({
+        ...datasetConfigs,
+        retrieval_model: RETRIEVE_TYPE.multiWay,
+      }, isInWorkflow)
+    }
+  }, [type, datasetConfigs, isInWorkflow, onChange])
+
   const {
     modelList: rerankModelList,
-    defaultModel: rerankDefaultModel,
   } = useModelListAndDefaultModelAndCurrentProviderAndModel(ModelTypeEnum.rerank)
-  const rerankModel = (() => {
-    if (datasetConfigs.reranking_model?.reranking_provider_name) {
-      return {
-        provider_name: datasetConfigs.reranking_model.reranking_provider_name,
-        model_name: datasetConfigs.reranking_model.reranking_model_name,
-      }
+
+  const {
+    currentModel: currentRerankModel,
+  } = useCurrentProviderAndModel(
+    rerankModelList,
+    {
+      provider: datasetConfigs.reranking_model?.reranking_provider_name,
+      model: datasetConfigs.reranking_model?.reranking_model_name,
+    },
+  )
+
+  const rerankModel = useMemo(() => {
+    return {
+      provider_name: datasetConfigs?.reranking_model?.reranking_provider_name ?? '',
+      model_name: datasetConfigs?.reranking_model?.reranking_model_name ?? '',
     }
-    else if (rerankDefaultModel) {
-      return {
-        provider_name: rerankDefaultModel.provider.provider,
-        model_name: rerankDefaultModel.model,
-      }
-    }
-  })()
+  }, [datasetConfigs.reranking_model])
 
   const handleParamChange = (key: string, value: number) => {
     if (key === 'top_k') {
@@ -129,6 +123,12 @@ const ConfigContent: FC<Props> = ({
   }
 
   const handleRerankModeChange = (mode: RerankingModeEnum) => {
+    if (mode === datasetConfigs.reranking_mode)
+      return
+
+    if (mode === RerankingModeEnum.RerankingModel && !currentRerankModel)
+      Toast.notify({ type: 'error', message: t('workflow.errorMsg.rerankModelRequired') })
+
     onChange({
       ...datasetConfigs,
       reranking_mode: mode,
@@ -156,81 +156,68 @@ const ConfigContent: FC<Props> = ({
   const showWeightedScorePanel = showWeightedScore && datasetConfigs.reranking_mode === RerankingModeEnum.WeightedScore && datasetConfigs.weights
   const selectedRerankMode = datasetConfigs.reranking_mode || RerankingModeEnum.RerankingModel
 
-  const showRerankModel = useMemo(() => {
-    if (datasetConfigs.reranking_enable === false && selectedDatasetsMode.allEconomic)
-      return false
+  const canManuallyToggleRerank = useMemo(() => {
+    return (selectedDatasetsMode.allInternal && selectedDatasetsMode.allEconomic)
+    || selectedDatasetsMode.allExternal
+  }, [selectedDatasetsMode.allEconomic, selectedDatasetsMode.allExternal, selectedDatasetsMode.allInternal])
 
-    return true
-  }, [datasetConfigs.reranking_enable, selectedDatasetsMode.allEconomic])
+  const showRerankModel = useMemo(() => {
+    if (!canManuallyToggleRerank)
+      return true
+
+    return datasetConfigs.reranking_enable
+  }, [datasetConfigs.reranking_enable, canManuallyToggleRerank])
+
+  const handleDisabledSwitchClick = useCallback((enable: boolean) => {
+    if (!currentRerankModel && enable)
+      Toast.notify({ type: 'error', message: t('workflow.errorMsg.rerankModelRequired') })
+    onChange({
+      ...datasetConfigs,
+      reranking_enable: enable,
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentRerankModel, datasetConfigs, onChange])
 
   return (
     <div>
       <div className='system-xl-semibold text-text-primary'>{t('dataset.retrievalSettings')}</div>
-      <div className='mt-2 space-y-3'>
-        <RadioCard
-          icon={<NTo1Retrieval className='shrink-0 mr-3 w-9 h-9 rounded-lg' />}
-          title={(
-            <div className='flex items-center'>
-              {t('appDebug.datasetConfig.retrieveOneWay.title')}
-              <Tooltip
-                popupContent={(
-                  <div className='w-[320px]'>
-                    {t('dataset.nTo1RetrievalLegacy')}
-                  </div>
-                )}
-              >
-                <div className='ml-1 flex items-center px-[5px] h-[18px] rounded-[5px] border border-text-accent-secondary system-2xs-medium-uppercase text-text-accent-secondary'>legacy</div>
-              </Tooltip>
-            </div>
-          )}
-          description={t('appDebug.datasetConfig.retrieveOneWay.description')}
-          isChosen={type === RETRIEVE_TYPE.oneWay}
-          onChosen={() => { setType(RETRIEVE_TYPE.oneWay) }}
-          extra={(
-            <div className='flex pl-3 pr-1 py-3 border-t border-divider-subtle bg-state-warning-hover rounded-b-xl'>
-              <RiAlertFill className='shrink-0 mr-1.5 w-4 h-4 text-text-warning-secondary' />
-              <div className='system-xs-medium text-text-primary'>
-                {t('dataset.nTo1RetrievalLegacyLinkText')}
-                <a
-                  className='text-text-accent'
-                  href={LEGACY_LINK_MAP[language]}
-                  target='_blank'
-                  rel='noopener noreferrer'
-                >
-                  {t('dataset.nTo1RetrievalLegacyLink')}
-                </a>
-              </div>
-            </div>
-          )}
-        />
-        <RadioCard
-          icon={<MultiPathRetrieval className='shrink-0 mr-3 w-9 h-9 rounded-lg' />}
-          title={t('appDebug.datasetConfig.retrieveMultiWay.title')}
-          description={t('appDebug.datasetConfig.retrieveMultiWay.description')}
-          isChosen={type === RETRIEVE_TYPE.multiWay}
-          onChosen={() => { setType(RETRIEVE_TYPE.multiWay) }}
-        />
+      <div className='system-xs-regular text-text-tertiary'>
+        {t('dataset.defaultRetrievalTip')}
       </div>
       {type === RETRIEVE_TYPE.multiWay && (
         <>
-          <div className='mb-2 mt-4 h-[1px] bg-divider-subtle'></div>
-          <div
-            className='flex items-center mb-2 h-6 system-md-semibold text-text-secondary'
-          >
-            {t('dataset.rerankSettings')}
+          <div className='my-2 flex h-6 items-center py-1'>
+            <div className='system-xs-semibold-uppercase mr-2 shrink-0 text-text-secondary'>
+              {t('dataset.rerankSettings')}
+            </div>
+            <Divider bgStyle='gradient' className='mx-0 !h-px' />
           </div>
           {
             selectedDatasetsMode.inconsistentEmbeddingModel
             && (
-              <div className='mt-4 system-xs-regular text-text-warning'>
+              <div className='system-xs-medium mt-4 text-text-warning'>
                 {t('dataset.inconsistentEmbeddingModelTip')}
+              </div>
+            )
+          }
+          {
+            selectedDatasetsMode.mixtureInternalAndExternal && (
+              <div className='system-xs-medium mt-4 text-text-warning'>
+                {t('dataset.mixtureInternalAndExternalTip')}
+              </div>
+            )
+          }
+          {
+            selectedDatasetsMode.allExternal && (
+              <div className='system-xs-medium mt-4 text-text-warning'>
+                {t('dataset.allExternalTip')}
               </div>
             )
           }
           {
             selectedDatasetsMode.mixtureHighQualityAndEconomic
             && (
-              <div className='mt-4 system-xs-regular text-text-warning'>
+              <div className='system-xs-medium mt-4 text-text-warning'>
                 {t('dataset.mixtureHighQualityAndEconomicTip')}
               </div>
             )
@@ -243,7 +230,7 @@ const ConfigContent: FC<Props> = ({
                     <div
                       key={option.value}
                       className={cn(
-                        'flex items-center justify-center w-[calc((100%-8px)/2)] h-8 rounded-lg border border-components-option-card-option-border bg-components-option-card-option-bg cursor-pointer system-sm-medium text-text-secondary',
+                        'system-sm-medium flex h-8 w-[calc((100%-8px)/2)] cursor-pointer items-center justify-center rounded-lg border border-components-option-card-option-border bg-components-option-card-option-bg text-text-secondary',
                         selectedRerankMode === option.value && 'border-[1.5px] border-components-option-card-option-selected-border bg-components-option-card-option-selected-bg text-text-primary',
                       )}
                       onClick={() => handleRerankModeChange(option.value)}
@@ -269,45 +256,44 @@ const ConfigContent: FC<Props> = ({
               <div className='mt-2'>
                 <div className='flex items-center'>
                   {
-                    selectedDatasetsMode.allEconomic && (
+                    selectedDatasetsMode.allEconomic && !selectedDatasetsMode.mixtureInternalAndExternal && (
                       <Switch
                         size='md'
                         defaultValue={showRerankModel}
-                        onChange={(v) => {
-                          onChange({
-                            ...datasetConfigs,
-                            reranking_enable: v,
-                          })
-                        }}
+                        disabled={!canManuallyToggleRerank}
+                        onChange={handleDisabledSwitchClick}
                       />
                     )
                   }
-                  <div className='ml-2 leading-[32px] text-[13px] font-medium text-gray-900'>{t('common.modelProvider.rerankModel.key')}</div>
+                  <div className='system-sm-semibold ml-1 leading-[32px] text-text-secondary'>{t('common.modelProvider.rerankModel.key')}</div>
                   <Tooltip
                     popupContent={
                       <div className="w-[200px]">
                         {t('common.modelProvider.rerankModel.tip')}
                       </div>
                     }
-                    popupClassName='ml-0.5'
-                    triggerClassName='ml-0.5 w-3.5 h-3.5'
+                    popupClassName='ml-1'
+                    triggerClassName='ml-1 w-4 h-4'
                   />
                 </div>
-                <div>
-                  <ModelSelector
-                    defaultModel={rerankModel && { provider: rerankModel?.provider_name, model: rerankModel?.model_name }}
-                    onSelect={(v) => {
-                      onChange({
-                        ...datasetConfigs,
-                        reranking_model: {
-                          reranking_provider_name: v.provider,
-                          reranking_model_name: v.model,
-                        },
-                      })
-                    }}
-                    modelList={rerankModelList}
-                  />
-                </div>
+                {
+                  showRerankModel && (
+                    <div>
+                      <ModelSelector
+                        defaultModel={rerankModel && { provider: rerankModel?.provider_name, model: rerankModel?.model_name }}
+                        onSelect={(v) => {
+                          onChange({
+                            ...datasetConfigs,
+                            reranking_model: {
+                              reranking_provider_name: v.provider,
+                              reranking_model_name: v.model,
+                            },
+                          })
+                        }}
+                        modelList={rerankModelList}
+                      />
+                    </div>
+                  )}
               </div>
             )
           }
@@ -368,7 +354,7 @@ const ConfigContent: FC<Props> = ({
       {isInWorkflow && type === RETRIEVE_TYPE.oneWay && (
         <div className='mt-4'>
           <div className='flex items-center space-x-0.5'>
-            <div className='leading-[32px] text-[13px] font-medium text-gray-900'>{t('common.modelProvider.systemReasoningModel.key')}</div>
+            <div className='text-[13px] font-medium leading-[32px] text-text-primary'>{t('common.modelProvider.systemReasoningModel.key')}</div>
             <Tooltip
               popupContent={t('common.modelProvider.systemReasoningModel.tip')}
             />
@@ -382,8 +368,8 @@ const ConfigContent: FC<Props> = ({
             provider={model?.provider}
             completionParams={model?.completion_params}
             modelId={model?.name}
-            setModel={onSingleRetrievalModelChange as any}
-            onCompletionParamsChange={onSingleRetrievalModelParamsChange as any}
+            setModel={onSingleRetrievalModelChange}
+            onCompletionParamsChange={onSingleRetrievalModelParamsChange}
             hideDebugWithMultipleModel
             debugWithMultipleModel={false}
           />

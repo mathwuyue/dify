@@ -18,6 +18,12 @@ export const userInputsFormToPromptVariables = (useInputs: UserInputFormItem[] |
       if (item.number)
         return ['number', item.number]
 
+      if (item.file)
+        return ['file', item.file]
+
+      if (item['file-list'])
+        return ['file-list', item['file-list']]
+
       if (item.external_data_tool)
         return [item.external_data_tool.type, item.external_data_tool]
 
@@ -55,6 +61,34 @@ export const userInputsFormToPromptVariables = (useInputs: UserInputFormItem[] |
         is_context_var,
       })
     }
+    else if (type === 'file') {
+      promptVariables.push({
+        key: content.variable,
+        name: content.label,
+        required: content.required,
+        type,
+        config: {
+          allowed_file_types: content.allowed_file_types,
+          allowed_file_extensions: content.allowed_file_extensions,
+          allowed_file_upload_methods: content.allowed_file_upload_methods,
+          number_limits: 1,
+        },
+      })
+    }
+    else if (type === 'file-list') {
+      promptVariables.push({
+        key: content.variable,
+        name: content.label,
+        required: content.required,
+        type,
+        config: {
+          allowed_file_types: content.allowed_file_types,
+          allowed_file_extensions: content.allowed_file_extensions,
+          allowed_file_upload_methods: content.allowed_file_upload_methods,
+          number_limits: content.max_length,
+        },
+      })
+    }
     else {
       promptVariables.push({
         key: content.variable,
@@ -75,10 +109,7 @@ export const userInputsFormToPromptVariables = (useInputs: UserInputFormItem[] |
 export const promptVariablesToUserInputsForm = (promptVariables: PromptVariable[]) => {
   const userInputs: UserInputFormItem[] = []
   promptVariables.filter(({ key, name }) => {
-    if (key && key.trim() && name && name.trim())
-      return true
-
-    return false
+    return key && key.trim() && name && name.trim()
   }).forEach((item: any) => {
     if (item.type === 'string' || item.type === 'paragraph') {
       userInputs.push({

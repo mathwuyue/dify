@@ -2,12 +2,10 @@
 import type { FC } from 'react'
 import React from 'react'
 import type { ThoughtItem, ToolInfoInThought } from '../type'
-import Tool from '@/app/components/base/chat/chat/thought/tool'
-import type { Emoji } from '@/app/components/tools/types'
+import ToolDetail from '@/app/components/base/chat/chat/answer/tool-detail'
 
 export type IThoughtProps = {
   thought: ThoughtItem
-  allToolIcons: Record<string, string | Emoji>
   isFinished: boolean
 }
 
@@ -16,7 +14,7 @@ function getValue(value: string, isValueArray: boolean, index: number) {
     try {
       return JSON.parse(value)[index]
     }
-    catch (e) {
+    catch {
     }
   }
   return value
@@ -24,7 +22,6 @@ function getValue(value: string, isValueArray: boolean, index: number) {
 
 const Thought: FC<IThoughtProps> = ({
   thought,
-  allToolIcons,
   isFinished,
 }) => {
   const [toolNames, isValueArray]: [string[], boolean] = (() => {
@@ -32,7 +29,7 @@ const Thought: FC<IThoughtProps> = ({
       if (Array.isArray(JSON.parse(thought.tool)))
         return [JSON.parse(thought.tool), true]
     }
-    catch (e) {
+    catch {
     }
     return [[thought.tool], false]
   })()
@@ -50,10 +47,9 @@ const Thought: FC<IThoughtProps> = ({
   return (
     <div className='my-2 space-y-2'>
       {toolThoughtList.map((item: ToolInfoInThought, index) => (
-        <Tool
+        <ToolDetail
           key={index}
           payload={item}
-          allToolIcons={allToolIcons}
         />
       ))}
     </div>

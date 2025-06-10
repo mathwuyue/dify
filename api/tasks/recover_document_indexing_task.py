@@ -2,10 +2,9 @@ import logging
 import time
 
 import click
-from celery import shared_task
-from werkzeug.exceptions import NotFound
+from celery import shared_task  # type: ignore
 
-from core.indexing_runner import DocumentIsPausedException, IndexingRunner
+from core.indexing_runner import DocumentIsPausedError, IndexingRunner
 from extensions.ext_database import db
 from models.dataset import Document
 
@@ -25,11 +24,13 @@ def recover_document_indexing_task(dataset_id: str, document_id: str):
     document = db.session.query(Document).filter(Document.id == document_id, Document.dataset_id == dataset_id).first()
 
     if not document:
-        raise NotFound("Document not found")
+        logging.info(click.style("Document not found: {}".format(document_id), fg="red"))
+        db.session.close()
+        return
 
     try:
         indexing_runner = IndexingRunner()
-        if document.indexing_status in ["waiting", "parsing", "cleaning"]:
+        if document.indexing_status in {"waiting", "parsing", "cleaning"}:
             indexing_runner.run([document])
         elif document.indexing_status == "splitting":
             indexing_runner.run_in_splitting_status(document)
@@ -39,7 +40,9 @@ def recover_document_indexing_task(dataset_id: str, document_id: str):
         logging.info(
             click.style("Processed document: {} latency: {}".format(document.id, end_at - start_at), fg="green")
         )
-    except DocumentIsPausedException as ex:
+    except DocumentIsPausedError as ex:
         logging.info(click.style(str(ex), fg="yellow"))
     except Exception:
         pass
+    finally:
+        db.session.close()

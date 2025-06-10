@@ -1,3 +1,3 @@
 #!/bin/bash
 
-poetry install -C api
+cd api && uv sync

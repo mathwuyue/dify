@@ -11,15 +11,14 @@ from controllers.console import api
 from libs.login import login_required
 from libs.oauth_data_source import NotionOAuth
 
-from ..setup import setup_required
-from ..wraps import account_initialization_required
+from ..wraps import account_initialization_required, setup_required
 
 
 def get_oauth_providers():
     with current_app.app_context():
         notion_oauth = NotionOAuth(
-            client_id=dify_config.NOTION_CLIENT_ID,
-            client_secret=dify_config.NOTION_CLIENT_SECRET,
+            client_id=dify_config.NOTION_CLIENT_ID or "",
+            client_secret=dify_config.NOTION_CLIENT_SECRET or "",
             redirect_uri=dify_config.CONSOLE_API_URL + "/console/api/oauth/data-source/callback/notion",
         )
 
@@ -35,7 +34,6 @@ class OAuthDataSource(Resource):
         OAUTH_DATASOURCE_PROVIDERS = get_oauth_providers()
         with current_app.app_context():
             oauth_provider = OAUTH_DATASOURCE_PROVIDERS.get(provider)
-            print(vars(oauth_provider))
         if not oauth_provider:
             return {"error": "Invalid provider"}, 400
         if dify_config.NOTION_INTEGRATION_TYPE == "internal":
@@ -76,7 +74,9 @@ class OAuthDataSourceBinding(Resource):
         if not oauth_provider:
             return {"error": "Invalid provider"}, 400
         if "code" in request.args:
-            code = request.args.get("code")
+            code = request.args.get("code", "")
+            if not code:
+                return {"error": "Invalid code"}, 400
             try:
                 oauth_provider.get_access_token(code)
             except requests.exceptions.HTTPError as e:

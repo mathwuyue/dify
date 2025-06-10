@@ -1,6 +1,7 @@
 import type { FC } from 'react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { RiEqualizer2Line } from '@remixicon/react'
 import ModelSelector from '../model-selector'
 import {
   useModelList,
@@ -13,7 +14,6 @@ import type {
 } from '../declarations'
 import { ModelTypeEnum } from '../declarations'
 import Tooltip from '@/app/components/base/tooltip'
-import { Settings01 } from '@/app/components/base/icons/src/vender/line/general'
 import {
   PortalToFollowElem,
   PortalToFollowElemContent,
@@ -31,6 +31,7 @@ type SystemModelSelectorProps = {
   rerankDefaultModel: DefaultModelResponse | undefined
   speech2textDefaultModel: DefaultModelResponse | undefined
   ttsDefaultModel: DefaultModelResponse | undefined
+  notConfigured: boolean
 }
 const SystemModel: FC<SystemModelSelectorProps> = ({
   textGenerationDefaultModel,
@@ -38,6 +39,7 @@ const SystemModel: FC<SystemModelSelectorProps> = ({
   rerankDefaultModel,
   speech2textDefaultModel,
   ttsDefaultModel,
+  notConfigured,
 }) => {
   const { t } = useTranslation()
   const { notify } = useToastContext()
@@ -128,27 +130,27 @@ const SystemModel: FC<SystemModelSelectorProps> = ({
       }}
     >
       <PortalToFollowElemTrigger onClick={() => setOpen(v => !v)}>
-        <div className={`
-          flex items-center px-2 h-6 text-xs text-gray-700 cursor-pointer bg-white rounded-md border-[0.5px] border-gray-200 shadow-xs
-          hover:bg-gray-100 hover:shadow-none
-          ${open && 'bg-gray-100 shadow-none'}
-        `}>
-          <Settings01 className='mr-1 w-3 h-3 text-gray-500' />
+        <Button
+          className='relative'
+          variant={notConfigured ? 'primary' : 'secondary'}
+          size='small'
+        >
+          <RiEqualizer2Line className='mr-1 h-3.5 w-3.5' />
           {t('common.modelProvider.systemModelSettings')}
-        </div>
+        </Button>
       </PortalToFollowElemTrigger>
-      <PortalToFollowElemContent className='z-50'>
-        <div className='pt-4 w-[360px] rounded-xl border-[0.5px] border-black/5 bg-white shadow-xl'>
+      <PortalToFollowElemContent className='z-[60]'>
+        <div className='w-[360px] rounded-xl border-[0.5px] border-components-panel-border bg-components-panel-bg pt-4 shadow-xl'>
           <div className='px-6 py-1'>
-            <div className='flex items-center h-8 text-[13px] font-medium text-gray-900'>
+            <div className='flex h-8 items-center text-[13px] font-medium text-text-primary'>
               {t('common.modelProvider.systemReasoningModel.key')}
               <Tooltip
                 popupContent={
-                  <div className='w-[261px] text-gray-500'>
+                  <div className='w-[261px] text-text-tertiary'>
                     {t('common.modelProvider.systemReasoningModel.tip')}
                   </div>
                 }
-                triggerClassName='ml-0.5'
+                triggerClassName='ml-0.5 w-4 h-4 shrink-0'
               />
             </div>
             <div>
@@ -160,16 +162,15 @@ const SystemModel: FC<SystemModelSelectorProps> = ({
             </div>
           </div>
           <div className='px-6 py-1'>
-            <div className='flex items-center h-8 text-[13px] font-medium text-gray-900'>
+            <div className='flex h-8 items-center text-[13px] font-medium text-text-primary'>
               {t('common.modelProvider.embeddingModel.key')}
               <Tooltip
                 popupContent={
-                  <div className='w-[261px] text-gray-500'>
+                  <div className='w-[261px] text-text-tertiary'>
                     {t('common.modelProvider.embeddingModel.tip')}
                   </div>
                 }
-                needsDelay={false}
-                triggerClassName='ml-0.5'
+                triggerClassName='ml-0.5 w-4 h-4 shrink-0'
               />
             </div>
             <div>
@@ -181,16 +182,15 @@ const SystemModel: FC<SystemModelSelectorProps> = ({
             </div>
           </div>
           <div className='px-6 py-1'>
-            <div className='flex items-center h-8 text-[13px] font-medium text-gray-900'>
+            <div className='flex h-8 items-center text-[13px] font-medium text-text-primary'>
               {t('common.modelProvider.rerankModel.key')}
               <Tooltip
                 popupContent={
-                  <div className='w-[261px] text-gray-500'>
+                  <div className='w-[261px] text-text-tertiary'>
                     {t('common.modelProvider.rerankModel.tip')}
                   </div>
                 }
-                needsDelay={false}
-                triggerClassName='ml-0.5'
+                triggerClassName='ml-0.5 w-4 h-4 shrink-0'
               />
             </div>
             <div>
@@ -202,16 +202,15 @@ const SystemModel: FC<SystemModelSelectorProps> = ({
             </div>
           </div>
           <div className='px-6 py-1'>
-            <div className='flex items-center h-8 text-[13px] font-medium text-gray-900'>
+            <div className='flex h-8 items-center text-[13px] font-medium text-text-primary'>
               {t('common.modelProvider.speechToTextModel.key')}
               <Tooltip
                 popupContent={
-                  <div className='w-[261px] text-gray-500'>
+                  <div className='w-[261px] text-text-tertiary'>
                     {t('common.modelProvider.speechToTextModel.tip')}
                   </div>
                 }
-                needsDelay={false}
-                triggerClassName='ml-0.5'
+                triggerClassName='ml-0.5 w-4 h-4 shrink-0'
               />
             </div>
             <div>
@@ -223,15 +222,15 @@ const SystemModel: FC<SystemModelSelectorProps> = ({
             </div>
           </div>
           <div className='px-6 py-1'>
-            <div className='flex items-center h-8 text-[13px] font-medium text-gray-900'>
+            <div className='flex h-8 items-center text-[13px] font-medium text-text-primary'>
               {t('common.modelProvider.ttsModel.key')}
               <Tooltip
                 popupContent={
-                  <div className='w-[261px] text-gray-500'>
+                  <div className='w-[261px] text-text-tertiary'>
                     {t('common.modelProvider.ttsModel.tip')}
                   </div>
                 }
-                triggerClassName='ml-0.5'
+                triggerClassName='ml-0.5 w-4 h-4 shrink-0'
               />
             </div>
             <div>

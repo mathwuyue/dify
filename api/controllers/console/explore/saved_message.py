@@ -18,7 +18,7 @@ message_fields = {
     "inputs": fields.Raw,
     "query": fields.String,
     "answer": fields.String,
-    "message_files": fields.List(fields.Nested(message_file_fields), attribute="files"),
+    "message_files": fields.List(fields.Nested(message_file_fields)),
     "feedback": fields.Nested(feedback_fields, attribute="user_feedback", allow_null=True),
     "created_at": TimestampField,
 }
@@ -72,7 +72,7 @@ class SavedMessageApi(InstalledAppResource):
 
         SavedMessageService.delete(app_model, current_user, message_id)
 
-        return {"result": "success"}
+        return {"result": "success"}, 204
 
 
 api.add_resource(

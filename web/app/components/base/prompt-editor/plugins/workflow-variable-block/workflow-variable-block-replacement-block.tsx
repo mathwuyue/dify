@@ -12,10 +12,11 @@ import type { WorkflowVariableBlockType } from '../../types'
 import { CustomTextNode } from '../custom-text/node'
 import { $createWorkflowVariableBlockNode } from './node'
 import { WorkflowVariableBlockNode } from './index'
-import { VAR_REGEX as REGEX } from '@/config'
+import { VAR_REGEX as REGEX, resetReg } from '@/config'
 
 const WorkflowVariableBlockReplacementBlock = ({
   workflowNodesMap,
+  getVarType,
   onInsert,
 }: WorkflowVariableBlockType) => {
   const [editor] = useLexicalComposerContext()
@@ -30,8 +31,8 @@ const WorkflowVariableBlockReplacementBlock = ({
       onInsert()
 
     const nodePathString = textNode.getTextContent().slice(3, -3)
-    return $applyNodeReplacement($createWorkflowVariableBlockNode(nodePathString.split('.'), workflowNodesMap))
-  }, [onInsert, workflowNodesMap])
+    return $applyNodeReplacement($createWorkflowVariableBlockNode(nodePathString.split('.'), workflowNodesMap, getVarType))
+  }, [onInsert, workflowNodesMap, getVarType])
 
   const getMatch = useCallback((text: string) => {
     const matchArr = REGEX.exec(text)
@@ -47,12 +48,13 @@ const WorkflowVariableBlockReplacementBlock = ({
     }
   }, [])
 
-  const transformListener = useCallback((textNode: any) => {
+  const transformListener = useCallback((textNode: CustomTextNode) => {
+    resetReg()
     return decoratorTransform(textNode, getMatch, createWorkflowVariableBlockNode)
   }, [createWorkflowVariableBlockNode, getMatch])
 
   useEffect(() => {
-    REGEX.lastIndex = 0
+    resetReg()
     return mergeRegister(
       editor.registerNodeTransform(CustomTextNode, transformListener),
     )

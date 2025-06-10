@@ -52,11 +52,14 @@ const translation = {
           title: 'वर्कफ़्लो स्टेप्स',
           show: 'दिखाएं',
           hide: 'छुपाएं',
+          subTitle: 'कार्यप्रवाह विवरण',
+          showDesc: 'WebApp में वर्कफ़्लो विवरण दिखाएँ या छुपाएँ',
         },
         chatColorTheme: 'चैटबॉट का रंग थीम',
         chatColorThemeDesc: 'चैटबॉट का रंग थीम निर्धारित करें',
         chatColorThemeInverted: 'उल्टा',
         invalidHexMessage: 'अमान्य हेक्स मान',
+        invalidPrivacyPolicy: 'गोपनीयता नीति लिंक अमान्य है। कृपया http या https से शुरू होने वाला एक वैध लिंक उपयोग करें।',
         more: {
           entry: 'अधिक सेटिंग्स दिखाएं',
           copyright: 'कॉपीराइट',
@@ -69,7 +72,16 @@ const translation = {
           customDisclaimerPlaceholder: 'कस्टम अस्वीकरण टेक्स्ट दर्ज करें',
           customDisclaimerTip:
             'कस्टम अस्वीकरण टेक्स्ट क्लाइंट साइड पर प्रदर्शित होगा, जो एप्लिकेशन के बारे में अतिरिक्त जानकारी प्रदान करेगा',
+          copyrightTip: 'वेबपैप में कॉपीराइट जानकारी प्रदर्शित करें',
+          copyrightTooltip: 'कृपया व्यावसायिक योजना या उससे ऊपर के संस्करण में अपग्रेड करें',
         },
+        sso: {
+          title: 'वेबएप एसएसओ',
+          label: 'SSO प्रमाणीकरण',
+          description: 'WebApp का उपयोग करने से पहले सभी उपयोगकर्ताओं को SSO के साथ लॉगिन करना आवश्यक है',
+          tooltip: 'WebApp SSO को सक्षम करने के लिए व्यवस्थापक से संपर्क करें',
+        },
+        modalTip: 'क्लाइंट-साइड वेब अनुप्रयोग सेटिंग्स.',
       },
       embedded: {
         entry: 'एम्बेडेड',
@@ -112,6 +124,7 @@ const translation = {
           operation: 'प्रलेखन',
         },
       },
+      launch: 'लॉन्च',
     },
     apiInfo: {
       title: 'बैकएंड सेवा एपीआई',
@@ -130,8 +143,11 @@ const translation = {
     tokenPS: 'टोकन/से.',
     totalMessages: {
       title: 'कुल संदेश',
-      explanation:
-        'दैनिक एआई इंटरैक्शन की गिनती; प्रॉम्प्ट इंजीनियरिंग/डीबगिंग को शामिल नहीं किया गया।',
+      explanation: 'दैनिक AI इंटरैक्शन की गिनती।',
+    },
+    totalConversations: {
+      title: 'कुल वार्तालाप',
+      explanation: 'दैनिक AI वार्तालाप की गिनती; प्रॉम्प्ट इंजीनियरिंग/डीबगिंग शामिल नहीं।',
     },
     activeUsers: {
       title: 'सक्रिय उपयोगकर्ता',

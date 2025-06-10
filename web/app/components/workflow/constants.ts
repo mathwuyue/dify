@@ -15,6 +15,13 @@ import VariableAssignerDefault from './nodes/variable-assigner/default'
 import AssignerDefault from './nodes/assigner/default'
 import EndNodeDefault from './nodes/end/default'
 import IterationDefault from './nodes/iteration/default'
+import LoopDefault from './nodes/loop/default'
+import DocExtractorDefault from './nodes/document-extractor/default'
+import ListFilterDefault from './nodes/list-operator/default'
+import IterationStartDefault from './nodes/iteration-start/default'
+import AgentDefault from './nodes/agent/default'
+import LoopStartDefault from './nodes/loop-start/default'
+import LoopEndDefault from './nodes/loop-end/default'
 
 type NodesExtraData = {
   author: string
@@ -24,6 +31,7 @@ type NodesExtraData = {
   getAvailablePrevNodes: (isChatMode: boolean) => BlockEnum[]
   getAvailableNextNodes: (isChatMode: boolean) => BlockEnum[]
   checkValid: any
+  checkVarValid?: any
 }
 export const NODES_EXTRA_DATA: Record<BlockEnum, NodesExtraData> = {
   [BlockEnum.Start]: {
@@ -52,6 +60,7 @@ export const NODES_EXTRA_DATA: Record<BlockEnum, NodesExtraData> = {
     getAvailablePrevNodes: AnswerDefault.getAvailablePrevNodes,
     getAvailableNextNodes: AnswerDefault.getAvailableNextNodes,
     checkValid: AnswerDefault.checkValid,
+    checkVarValid: AnswerDefault.checkVarValid,
   },
   [BlockEnum.LLM]: {
     author: 'Dify',
@@ -61,6 +70,7 @@ export const NODES_EXTRA_DATA: Record<BlockEnum, NodesExtraData> = {
     getAvailablePrevNodes: LLMDefault.getAvailablePrevNodes,
     getAvailableNextNodes: LLMDefault.getAvailableNextNodes,
     checkValid: LLMDefault.checkValid,
+    checkVarValid: LLMDefault.checkVarValid,
   },
   [BlockEnum.KnowledgeRetrieval]: {
     author: 'Dify',
@@ -70,6 +80,7 @@ export const NODES_EXTRA_DATA: Record<BlockEnum, NodesExtraData> = {
     getAvailablePrevNodes: KnowledgeRetrievalDefault.getAvailablePrevNodes,
     getAvailableNextNodes: KnowledgeRetrievalDefault.getAvailableNextNodes,
     checkValid: KnowledgeRetrievalDefault.checkValid,
+    checkVarValid: KnowledgeRetrievalDefault.checkVarValid,
   },
   [BlockEnum.IfElse]: {
     author: 'Dify',
@@ -79,6 +90,7 @@ export const NODES_EXTRA_DATA: Record<BlockEnum, NodesExtraData> = {
     getAvailablePrevNodes: IfElseDefault.getAvailablePrevNodes,
     getAvailableNextNodes: IfElseDefault.getAvailableNextNodes,
     checkValid: IfElseDefault.checkValid,
+    checkVarValid: IfElseDefault.checkVarValid,
   },
   [BlockEnum.Iteration]: {
     author: 'Dify',
@@ -88,6 +100,43 @@ export const NODES_EXTRA_DATA: Record<BlockEnum, NodesExtraData> = {
     getAvailablePrevNodes: IterationDefault.getAvailablePrevNodes,
     getAvailableNextNodes: IterationDefault.getAvailableNextNodes,
     checkValid: IterationDefault.checkValid,
+    checkVarValid: IterationDefault.checkVarValid,
+  },
+  [BlockEnum.IterationStart]: {
+    author: 'Dify',
+    about: '',
+    availablePrevNodes: [],
+    availableNextNodes: [],
+    getAvailablePrevNodes: IterationStartDefault.getAvailablePrevNodes,
+    getAvailableNextNodes: IterationStartDefault.getAvailableNextNodes,
+    checkValid: IterationStartDefault.checkValid,
+  },
+  [BlockEnum.Loop]: {
+    author: 'AICT-Team',
+    about: '',
+    availablePrevNodes: [],
+    availableNextNodes: [],
+    getAvailablePrevNodes: LoopDefault.getAvailablePrevNodes,
+    getAvailableNextNodes: LoopDefault.getAvailableNextNodes,
+    checkValid: LoopDefault.checkValid,
+  },
+  [BlockEnum.LoopStart]: {
+    author: 'AICT-Team',
+    about: '',
+    availablePrevNodes: [],
+    availableNextNodes: [],
+    getAvailablePrevNodes: LoopStartDefault.getAvailablePrevNodes,
+    getAvailableNextNodes: LoopStartDefault.getAvailableNextNodes,
+    checkValid: LoopStartDefault.checkValid,
+  },
+  [BlockEnum.LoopEnd]: {
+    author: 'Dify',
+    about: '',
+    availablePrevNodes: [],
+    availableNextNodes: [],
+    getAvailablePrevNodes: LoopEndDefault.getAvailablePrevNodes,
+    getAvailableNextNodes: LoopEndDefault.getAvailableNextNodes,
+    checkValid: LoopEndDefault.checkValid,
   },
   [BlockEnum.Code]: {
     author: 'Dify',
@@ -97,6 +146,7 @@ export const NODES_EXTRA_DATA: Record<BlockEnum, NodesExtraData> = {
     getAvailablePrevNodes: CodeDefault.getAvailablePrevNodes,
     getAvailableNextNodes: CodeDefault.getAvailableNextNodes,
     checkValid: CodeDefault.checkValid,
+    checkVarValid: CodeDefault.checkVarValid,
   },
   [BlockEnum.TemplateTransform]: {
     author: 'Dify',
@@ -106,6 +156,7 @@ export const NODES_EXTRA_DATA: Record<BlockEnum, NodesExtraData> = {
     getAvailablePrevNodes: TemplateTransformDefault.getAvailablePrevNodes,
     getAvailableNextNodes: TemplateTransformDefault.getAvailableNextNodes,
     checkValid: TemplateTransformDefault.checkValid,
+    checkVarValid: TemplateTransformDefault.checkVarValid,
   },
   [BlockEnum.QuestionClassifier]: {
     author: 'Dify',
@@ -115,6 +166,7 @@ export const NODES_EXTRA_DATA: Record<BlockEnum, NodesExtraData> = {
     getAvailablePrevNodes: QuestionClassifierDefault.getAvailablePrevNodes,
     getAvailableNextNodes: QuestionClassifierDefault.getAvailableNextNodes,
     checkValid: QuestionClassifierDefault.checkValid,
+    checkVarValid: QuestionClassifierDefault.checkVarValid,
   },
   [BlockEnum.HttpRequest]: {
     author: 'Dify',
@@ -124,6 +176,7 @@ export const NODES_EXTRA_DATA: Record<BlockEnum, NodesExtraData> = {
     getAvailablePrevNodes: HttpRequestDefault.getAvailablePrevNodes,
     getAvailableNextNodes: HttpRequestDefault.getAvailableNextNodes,
     checkValid: HttpRequestDefault.checkValid,
+    checkVarValid: HttpRequestDefault.checkVarValid,
   },
   [BlockEnum.VariableAssigner]: {
     author: 'Dify',
@@ -142,6 +195,7 @@ export const NODES_EXTRA_DATA: Record<BlockEnum, NodesExtraData> = {
     getAvailablePrevNodes: AssignerDefault.getAvailablePrevNodes,
     getAvailableNextNodes: AssignerDefault.getAvailableNextNodes,
     checkValid: AssignerDefault.checkValid,
+    checkVarValid: AssignerDefault.checkVarValid,
   },
   [BlockEnum.VariableAggregator]: {
     author: 'Dify',
@@ -151,6 +205,7 @@ export const NODES_EXTRA_DATA: Record<BlockEnum, NodesExtraData> = {
     getAvailablePrevNodes: VariableAssignerDefault.getAvailablePrevNodes,
     getAvailableNextNodes: VariableAssignerDefault.getAvailableNextNodes,
     checkValid: VariableAssignerDefault.checkValid,
+    checkVarValid: VariableAssignerDefault.checkVarValid,
   },
   [BlockEnum.ParameterExtractor]: {
     author: 'Dify',
@@ -160,6 +215,7 @@ export const NODES_EXTRA_DATA: Record<BlockEnum, NodesExtraData> = {
     getAvailablePrevNodes: ParameterExtractorDefault.getAvailablePrevNodes,
     getAvailableNextNodes: ParameterExtractorDefault.getAvailableNextNodes,
     checkValid: ParameterExtractorDefault.checkValid,
+    checkVarValid: ParameterExtractorDefault.checkVarValid,
   },
   [BlockEnum.Tool]: {
     author: 'Dify',
@@ -169,11 +225,38 @@ export const NODES_EXTRA_DATA: Record<BlockEnum, NodesExtraData> = {
     getAvailablePrevNodes: ToolDefault.getAvailablePrevNodes,
     getAvailableNextNodes: ToolDefault.getAvailableNextNodes,
     checkValid: ToolDefault.checkValid,
+    checkVarValid: ToolDefault.checkVarValid,
+  },
+  [BlockEnum.DocExtractor]: {
+    author: 'Dify',
+    about: '',
+    availablePrevNodes: [],
+    availableNextNodes: [],
+    getAvailablePrevNodes: DocExtractorDefault.getAvailablePrevNodes,
+    getAvailableNextNodes: DocExtractorDefault.getAvailableNextNodes,
+    checkValid: DocExtractorDefault.checkValid,
+    checkVarValid: DocExtractorDefault.checkVarValid,
+  },
+  [BlockEnum.ListFilter]: {
+    author: 'Dify',
+    about: '',
+    availablePrevNodes: [],
+    availableNextNodes: [],
+    getAvailablePrevNodes: ListFilterDefault.getAvailablePrevNodes,
+    getAvailableNextNodes: ListFilterDefault.getAvailableNextNodes,
+    checkValid: ListFilterDefault.checkValid,
+    checkVarValid: ListFilterDefault.checkVarValid,
+  },
+  [BlockEnum.Agent]: {
+    author: 'Dify',
+    about: '',
+    availablePrevNodes: [],
+    availableNextNodes: [],
+    getAvailablePrevNodes: ListFilterDefault.getAvailablePrevNodes,
+    getAvailableNextNodes: ListFilterDefault.getAvailableNextNodes,
+    checkValid: AgentDefault.checkValid,
   },
 }
-
-export const ALL_CHAT_AVAILABLE_BLOCKS = Object.keys(NODES_EXTRA_DATA).filter(key => key !== BlockEnum.End && key !== BlockEnum.Start) as BlockEnum[]
-export const ALL_COMPLETION_AVAILABLE_BLOCKS = Object.keys(NODES_EXTRA_DATA).filter(key => key !== BlockEnum.Answer && key !== BlockEnum.Start) as BlockEnum[]
 
 export const NODES_INITIAL_DATA = {
   [BlockEnum.Start]: {
@@ -221,6 +304,30 @@ export const NODES_INITIAL_DATA = {
     title: '',
     desc: '',
     ...IterationDefault.defaultValue,
+  },
+  [BlockEnum.IterationStart]: {
+    type: BlockEnum.IterationStart,
+    title: '',
+    desc: '',
+    ...IterationStartDefault.defaultValue,
+  },
+  [BlockEnum.Loop]: {
+    type: BlockEnum.Loop,
+    title: '',
+    desc: '',
+    ...LoopDefault.defaultValue,
+  },
+  [BlockEnum.LoopStart]: {
+    type: BlockEnum.LoopStart,
+    title: '',
+    desc: '',
+    ...LoopStartDefault.defaultValue,
+  },
+  [BlockEnum.LoopEnd]: {
+    type: BlockEnum.LoopEnd,
+    title: '',
+    desc: '',
+    ...LoopEndDefault.defaultValue,
   },
   [BlockEnum.Code]: {
     type: BlockEnum.Code,
@@ -290,8 +397,29 @@ export const NODES_INITIAL_DATA = {
     desc: '',
     ...ToolDefault.defaultValue,
   },
+  [BlockEnum.DocExtractor]: {
+    type: BlockEnum.DocExtractor,
+    title: '',
+    desc: '',
+    ...DocExtractorDefault.defaultValue,
+  },
+  [BlockEnum.ListFilter]: {
+    type: BlockEnum.ListFilter,
+    title: '',
+    desc: '',
+    ...ListFilterDefault.defaultValue,
+  },
+  [BlockEnum.Agent]: {
+    type: BlockEnum.Agent,
+    title: '',
+    desc: '',
+    ...AgentDefault.defaultValue,
+  },
 }
-
+export const MAX_ITERATION_PARALLEL_NUM = 10
+export const MIN_ITERATION_PARALLEL_NUM = 1
+export const DEFAULT_ITER_TIMES = 1
+export const DEFAULT_LOOP_TIMES = 1
 export const NODE_WIDTH = 240
 export const X_OFFSET = 60
 export const NODE_WIDTH_X_OFFSET = NODE_WIDTH + X_OFFSET
@@ -305,11 +433,34 @@ export const AUTO_LAYOUT_OFFSET = {
 export const ITERATION_NODE_Z_INDEX = 1
 export const ITERATION_CHILDREN_Z_INDEX = 1002
 export const ITERATION_PADDING = {
-  top: 85,
+  top: 65,
   right: 16,
   bottom: 20,
   left: 16,
 }
+
+export const LOOP_NODE_Z_INDEX = 1
+export const LOOP_CHILDREN_Z_INDEX = 1002
+export const LOOP_PADDING = {
+  top: 65,
+  right: 16,
+  bottom: 20,
+  left: 16,
+}
+
+export const NODE_LAYOUT_HORIZONTAL_PADDING = 60
+export const NODE_LAYOUT_VERTICAL_PADDING = 60
+export const NODE_LAYOUT_MIN_DISTANCE = 100
+
+let maxParallelLimit = 10
+
+if (process.env.NEXT_PUBLIC_MAX_PARALLEL_LIMIT && process.env.NEXT_PUBLIC_MAX_PARALLEL_LIMIT !== '')
+  maxParallelLimit = Number.parseInt(process.env.NEXT_PUBLIC_MAX_PARALLEL_LIMIT)
+else if (globalThis.document?.body?.getAttribute('data-public-max-parallel-limit') && globalThis.document.body.getAttribute('data-public-max-parallel-limit') !== '')
+  maxParallelLimit = Number.parseInt(globalThis.document.body.getAttribute('data-public-max-parallel-limit') as string)
+
+export const PARALLEL_LIMIT = maxParallelLimit
+export const PARALLEL_DEPTH_LIMIT = 3
 
 export const RETRIEVAL_OUTPUT_STRUCT = `{
   "content": "",
@@ -334,7 +485,9 @@ export const RETRIEVAL_OUTPUT_STRUCT = `{
 export const SUPPORT_OUTPUT_VARS_NODE = [
   BlockEnum.Start, BlockEnum.LLM, BlockEnum.KnowledgeRetrieval, BlockEnum.Code, BlockEnum.TemplateTransform,
   BlockEnum.HttpRequest, BlockEnum.Tool, BlockEnum.VariableAssigner, BlockEnum.VariableAggregator, BlockEnum.QuestionClassifier,
-  BlockEnum.ParameterExtractor, BlockEnum.Iteration,
+  BlockEnum.ParameterExtractor, BlockEnum.Iteration, BlockEnum.Loop,
+  BlockEnum.DocExtractor, BlockEnum.ListFilter,
+  BlockEnum.Agent,
 ]
 
 export const LLM_OUTPUT_STRUCT: Var[] = [
@@ -410,6 +563,51 @@ export const PARAMETER_EXTRACTOR_COMMON_STRUCT: Var[] = [
   },
 ]
 
+export const FILE_STRUCT: Var[] = [
+  {
+    variable: 'name',
+    type: VarType.string,
+  },
+  {
+    variable: 'size',
+    type: VarType.number,
+  },
+  {
+    variable: 'type',
+    type: VarType.string,
+  },
+  {
+    variable: 'extension',
+    type: VarType.string,
+  },
+  {
+    variable: 'mime_type',
+    type: VarType.string,
+  },
+  {
+    variable: 'transfer_method',
+    type: VarType.string,
+  },
+  {
+    variable: 'url',
+    type: VarType.string,
+  },
+  {
+    variable: 'related_id',
+    type: VarType.string,
+  },
+]
+
+export const DEFAULT_FILE_UPLOAD_SETTING = {
+  allowed_file_upload_methods: ['local_file', 'remote_url'],
+  max_length: 5,
+  allowed_file_types: ['image'],
+  allowed_file_extensions: [],
+}
+
 export const WORKFLOW_DATA_UPDATE = 'WORKFLOW_DATA_UPDATE'
 export const CUSTOM_NODE = 'custom'
+export const CUSTOM_EDGE = 'custom'
 export const DSL_EXPORT_CHECK = 'DSL_EXPORT_CHECK'
+export const DEFAULT_RETRY_MAX = 3
+export const DEFAULT_RETRY_INTERVAL = 100
